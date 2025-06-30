@@ -58,7 +58,7 @@ export default function CompanyTimeModal({ open, onClose, company, timeEntries, 
   const handleDelete = async (entry) => {
     setDeleting(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/timer/${entry.id}`, {
+      const response = await fetch(`https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api/timer/${entry.id}`, {
         method: 'DELETE',
       });
       
