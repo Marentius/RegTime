@@ -1,20 +1,33 @@
 package no.marentius.backend.service;
 
-import org.springframework.beans.factory.annotation.Value;
+import no.marentius.backend.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
+    @Autowired
+    private UserService userService;
 
-    @Value("${app.login.password}")
-    private String correctPassword;
-
-    public boolean authenticate(String password) {
-        if (password == null || correctPassword == null) {
-            return false;
+    public String authenticate(String username, String password) {
+        User user = userService.findByUsername(username);
+        System.out.println("Brukernavn: " + username);
+        if (user == null) {
+            System.out.println("Fant ikke bruker i DB");
+            return null;
         }
-        // Trim begge strengene for å fjerne eventuelle usynlige mellomrom
-        // før de sammenlignes.
-        return correctPassword.trim().equals(password.trim());
+        System.out.println("Hash fra DB: " + user.getPasswordHash());
+        System.out.println("Sjekker passord: " + password);
+        boolean match = BCrypt.checkpw(password, user.getPasswordHash());
+        System.out.println("BCrypt.checkpw: " + match);
+        if (match) {
+            return user.getUserId();
+        }
+        return null;
     }
-} 
+
+    public UserService getUserService() {
+        return userService;
+    }
+}

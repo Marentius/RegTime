@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles';
 
 export default function Header({ onRegistrere, onKalender, onSummering }) {
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userId');
     window.location.href = '/login';
   };
 
@@ -29,10 +29,37 @@ export default function Header({ onRegistrere, onKalender, onSummering }) {
       mx: { xs: 0, md: 2 },
       transition: 'background 0.4s',
     }}>
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-          Reg<Box component="span" sx={{ color: 'primary.main' }}>Time</Box>
-        </Typography>
+      <Toolbar
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+          minHeight: { xs: 56, md: 64 },
+          px: { xs: 1, md: 3 },
+        }}
+      >
+        {/* Logo-boks */}
+        <Box
+          sx={{
+            background: { xs: 'none', md: 'linear-gradient(135deg, #7b1fa2 0%, #1976d2 100%)' },
+            borderRadius: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: { xs: 0, md: 2 },
+            mr: 3,
+            px: { xs: 1.5, md: 3 },
+            py: { xs: 0.5, md: 1.2 },
+            minWidth: { xs: 0, md: 120 },
+            minHeight: { xs: 0, md: 48 },
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 900, fontSize: { xs: '1.1rem', md: '2rem' }, lineHeight: 1, whiteSpace: 'nowrap' }}>
+            <Box component="span" sx={{ color: 'primary.main' }}>Reg</Box>
+            <Box component="span" sx={{ color: '#fff', ml: 0.2 }}>Time</Box>
+          </Typography>
+        </Box>
         {isMobile ? (
           <>
             <IconButton color="inherit" onClick={handleDrawerToggle} edge="end">

@@ -15,33 +15,34 @@ public class TimeEntryController {
     private TimeEntryService service;
 
     @PostMapping
-    public TimeEntry create(@RequestBody TimeEntry entry) {
+    public TimeEntry create(@RequestHeader("X-USER-ID") String userId, @RequestBody TimeEntry entry) {
+        entry.setUserId(userId);
         return service.save(entry);
     }
 
     @GetMapping
-    public List<TimeEntry> getAll() {
-        return service.getAll();
+    public List<TimeEntry> getAll(@RequestHeader("X-USER-ID") String userId) {
+        return service.getAll(userId);
     }
 
     @GetMapping("/kunde/{name}")
-    public List<TimeEntry> getByCustomer(@PathVariable String name) {
-        return service.getByCustomer(name);
+    public List<TimeEntry> getByCustomer(@RequestHeader("X-USER-ID") String userId, @PathVariable String name) {
+        return service.getByCustomer(userId, name);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
-        service.deleteById(id);
+    public void delete(@RequestHeader("X-USER-ID") String userId, @PathVariable String id) {
+        service.deleteById(userId, id);
     }
 
     @GetMapping("/selskap/{companyId}")
-    public List<TimeEntry> getByCompanyId(@PathVariable String companyId) {
-        return service.getByCompanyId(companyId);
+    public List<TimeEntry> getByCompanyId(@RequestHeader("X-USER-ID") String userId, @PathVariable String companyId) {
+        return service.getByCompanyId(userId, companyId);
     }
 
     @GetMapping("/categories")
-    public List<String> getUniqueCategories() {
-        return service.getUniqueCategories();
+    public List<String> getUniqueCategories(@RequestHeader("X-USER-ID") String userId) {
+        return service.getUniqueCategories(userId);
     }
 
 }

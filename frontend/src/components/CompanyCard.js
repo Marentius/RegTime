@@ -69,25 +69,20 @@ export default function CompanyCard({ name, onClick, onDelete }) {
             {name}
           </Typography>
         </CardContent>
-        <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
-          <IconButton
-            aria-label="delete"
-            onClick={handleDeleteClick}
-            sx={{
-              color: 'secondary.main',
-              background: 'rgba(239,106,173,0.10)',
-              '&:hover': {
-                background: 'rgba(239,106,173,0.22)',
-                color: 'error.main',
-              },
-              boxShadow: '0 2px 8px 0 rgba(239,106,173,0.10)',
-            }}
-            size="medium"
-          >
-            <DeleteIcon fontSize="medium" />
-          </IconButton>
-        </Box>
       </CardActionArea>
+      <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+        <IconButton
+          aria-label="delete"
+          onClick={handleDeleteClick}
+          sx={{
+            color: 'error.main',
+            backgroundColor: 'background.paper',
+            '&:hover': { backgroundColor: 'error.light' },
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
+      </Box>
     </Card>
   );
 } 

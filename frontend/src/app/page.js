@@ -16,6 +16,7 @@ import AddCategoryModal from '@/components/AddCategoryModal';
 import CalendarModal from '@/components/CalendarModal';
 import SummaryModal from '@/components/SummaryModal';
 import CompanyTimeModal from '@/components/CompanyTimeModal';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function Home() {
   const router = useRouter();
@@ -52,12 +53,7 @@ export default function Home() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated');
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
+    // Ikke sjekk isAuthenticated, bare hent data
     const fetchData = async () => {
       try {
         const [companiesData, entriesData, categoriesData] = await Promise.all([
@@ -174,165 +170,166 @@ export default function Home() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, sm: 2, md: 4 } }}>
-      <Header
-        onRegistrere={() => setRegisterTimeModalOpen(true)}
-        onKalender={() => setCalendarModalOpen(true)}
-        onSummering={() => setSummaryModalOpen(true)}
-      />
+    <ProtectedRoute>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, sm: 2, md: 4 } }}>
+        <Header
+          onRegistrere={() => setRegisterTimeModalOpen(true)}
+          onKalender={() => setCalendarModalOpen(true)}
+          onSummering={() => setSummaryModalOpen(true)}
+        />
 
-      <main>
-        <Box sx={{ my: { xs: 3, md: 6 }, textAlign: 'center' }}>
-            <Typography variant="h4" component="h1" gutterBottom sx={{ fontSize: { xs: '1.5rem', md: '2.2rem' } }}>
-                Selskaper
-            </Typography>
-            <Typography color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.2rem' } }}>
-                Velg et selskap for å se detaljer eller opprett et nytt.
-            </Typography>
-        </Box>
+        <main>
+          <Box sx={{ my: { xs: 3, md: 6 }, textAlign: 'center' }}>
+              <Typography variant="h4" component="h1" gutterBottom sx={{ fontSize: { xs: '1.5rem', md: '2.2rem' } }}>
+                  Selskaper
+              </Typography>
+              <Typography color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.2rem' } }}>
+                  Velg et selskap for å se detaljer eller opprett et nytt.
+              </Typography>
+          </Box>
 
-        <Box sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'stretch', sm: 'center' },
-          mb: 3,
-          gap: 2,
-          px: { xs: 0, md: 4 }
-        }}>
-          <SearchBar
-            onSearch={setSearchTerm}
-            placeholder="Søk etter selskap..."
-          />
-          {isMobile && (
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'stretch', sm: 'center' },
+            mb: 3,
+            gap: 2,
+            px: { xs: 0, md: 4 }
+          }}>
+            <SearchBar
+              onSearch={setSearchTerm}
+              placeholder="Søk etter selskap..."
+            />
+            {isMobile && (
+              <Button
+                variant="contained"
+                onClick={() => setRegisterTimeModalOpen(true)}
+                sx={{ mt: 1, width: '100%' }}
+              >
+                Registrer ny tid
+              </Button>
+            )}
             <Button
               variant="contained"
-              onClick={() => setRegisterTimeModalOpen(true)}
-              sx={{ mt: 1, width: '100%' }}
+              onClick={() => setAddCompanyModalOpen(true)}
+              sx={{
+                ml: { xs: 0, sm: 2 },
+                mt: { xs: 1, sm: 0 },
+                width: { xs: '100%', sm: 'auto' },
+                whiteSpace: 'nowrap',
+                fontSize: { xs: '1rem', md: '1rem' },
+                px: { xs: 2.5, md: 4 },
+                py: { xs: 1.2, md: 1.7 },
+              }}
             >
-              Registrer ny tid
+              Legg til selskap
             </Button>
-          )}
-          <Button
-            variant="contained"
-            onClick={() => setAddCompanyModalOpen(true)}
+          </Box>
+          <Box
             sx={{
-              ml: { xs: 0, sm: 2 },
-              mt: { xs: 1, sm: 0 },
-              width: { xs: '100%', sm: 'auto' },
-              whiteSpace: 'nowrap',
-              fontSize: { xs: '1rem', md: '1rem' },
-              px: { xs: 2.5, md: 4 },
-              py: { xs: 1.2, md: 1.7 },
+              display: 'grid',
+              gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+              gap: { xs: 2, md: 4 },
+              mt: 1,
+              px: { xs: 0, md: 2 },
+              width: '100%',
+              justifyItems: 'stretch',
+              alignItems: 'stretch',
             }}
           >
-            Legg til selskap
-          </Button>
-        </Box>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-            gap: { xs: 2, md: 4 },
-            mt: 1,
-            px: { xs: 0, md: 2 },
-            width: '100%',
-            justifyItems: 'stretch',
-            alignItems: 'stretch',
-          }}
-        >
-          {filteredCompanies.map((company) => (
-            <Box key={company.id} sx={{ height: '100%', display: 'flex' }}>
-              <CompanyCard
-                name={company.name}
-                onClick={() => setSelectedCompany(company)}
-                onDelete={() => handleDeleteConfirmation(company)}
-              />
-            </Box>
-          ))}
-        </Box>
-      </main>
+            {filteredCompanies.map((company) => (
+              <Box key={company.id} sx={{ height: '100%', display: 'flex' }}>
+                <CompanyCard
+                  name={company.name}
+                  onClick={() => setSelectedCompany(company)}
+                  onDelete={() => handleDeleteConfirmation(company)}
+                />
+              </Box>
+            ))}
+          </Box>
+        </main>
 
-      <AddCompanyModal
-        open={isAddCompanyModalOpen}
-        onClose={() => setAddCompanyModalOpen(false)}
-        onSubmit={handleAddCompany}
-        value={newCompanyName}
-        onChange={(e) => setNewCompanyName(e.target.value)}
-        loading={modalLoading}
-      />
+        <AddCompanyModal
+          open={isAddCompanyModalOpen}
+          onClose={() => setAddCompanyModalOpen(false)}
+          onSubmit={handleAddCompany}
+          value={newCompanyName}
+          onChange={(e) => setNewCompanyName(e.target.value)}
+          loading={modalLoading}
+        />
 
-      <ConfirmationModal
-        open={isConfirmationModalOpen}
-        onClose={() => setConfirmationModalOpen(false)}
-        onConfirm={handleDeleteCompany}
-        title="Bekreft sletting"
-        message={`Er du sikker på at du vil slette ${companyToDelete?.name}? Denne handlingen kan ikke angres.`}
-        loading={modalLoading}
-      />
+        <ConfirmationModal
+          open={isConfirmationModalOpen}
+          onClose={() => setConfirmationModalOpen(false)}
+          onConfirm={handleDeleteCompany}
+          title="Bekreft sletting"
+          message={`Er du sikker på at du vil slette ${companyToDelete?.name}? Denne handlingen kan ikke angres.`}
+          loading={modalLoading}
+        />
 
-      <RegisterTimeModal
-        open={isRegisterTimeModalOpen}
-        onClose={() => setRegisterTimeModalOpen(false)}
-        onSubmit={handleRegisterTime}
-        companies={companies}
-        values={timeEntryValues}
-        onChange={(field, value) => setTimeEntryValues(prev => ({ ...prev, [field]: value }))}
-        loading={modalLoading}
-        error={timeEntryError}
-        categories={categories}
-        onAddCategory={() => setAddCategoryModalOpen(true)}
-        onAddCompany={() => setAddCompanyModalOpen(true)}
-      />
+        <RegisterTimeModal
+          open={isRegisterTimeModalOpen}
+          onClose={() => setRegisterTimeModalOpen(false)}
+          onSubmit={handleRegisterTime}
+          companies={companies}
+          values={timeEntryValues}
+          onChange={(field, value) => setTimeEntryValues(prev => ({ ...prev, [field]: value }))}
+          loading={modalLoading}
+          error={timeEntryError}
+          categories={categories}
+          onAddCategory={() => setAddCategoryModalOpen(true)}
+          onAddCompany={() => setAddCompanyModalOpen(true)}
+        />
 
-      <AddCategoryModal
-        open={isAddCategoryModalOpen}
-        onClose={() => setAddCategoryModalOpen(false)}
-        onSubmit={handleAddTimeCategory}
-        value={newCategoryName}
-        onChange={(e) => setNewCategoryName(e.target.value)}
-        loading={modalLoading}
-      />
+        <AddCategoryModal
+          open={isAddCategoryModalOpen}
+          onClose={() => setAddCategoryModalOpen(false)}
+          onSubmit={handleAddTimeCategory}
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          loading={modalLoading}
+        />
 
-      <CalendarModal
-        open={isCalendarModalOpen}
-        onClose={() => setCalendarModalOpen(false)}
-        entries={allTimeEntries}
-        currentDate={calendarDate}
-        onDateChange={setCalendarDate}
-        categories={categories}
-      />
+        <CalendarModal
+          open={isCalendarModalOpen}
+          onClose={() => setCalendarModalOpen(false)}
+          entries={allTimeEntries}
+          currentDate={calendarDate}
+          onDateChange={setCalendarDate}
+          categories={categories}
+        />
 
-      <SummaryModal
-        open={isSummaryModalOpen}
-        onClose={() => setSummaryModalOpen(false)}
-        entries={allTimeEntries}
-        companies={companies}
-      />
+        <SummaryModal
+          open={isSummaryModalOpen}
+          onClose={() => setSummaryModalOpen(false)}
+          entries={allTimeEntries}
+          companies={companies}
+        />
 
-      <CompanyTimeModal
-        open={!!selectedCompany}
-        onClose={() => setSelectedCompany(null)}
-        company={selectedCompany}
-        entries={allTimeEntries.filter(e => e.companyId === selectedCompany?.id)}
-        onDelete={handleDeleteTimeEntry}
-      />
-      <Box component="footer" sx={{
-      width: '100%',
-      mt: 6,
-      py: 3,
-      textAlign: 'center',
-      color: 'text.secondary',
-      fontSize: { xs: '0.95rem', md: '1rem' },
-      letterSpacing: 0.2,
-      background: 'transparent',
-      position: 'relative',
-    }}>
-      <Typography variant="body2">
-        Laget av Vetle Marentius &copy; {new Date().getFullYear()}
-      </Typography>
-    </Box>
-    </Container>
-    
+        <CompanyTimeModal
+          open={!!selectedCompany}
+          onClose={() => setSelectedCompany(null)}
+          company={selectedCompany}
+          entries={allTimeEntries.filter(e => e.companyId === selectedCompany?.id)}
+          onDelete={handleDeleteTimeEntry}
+        />
+        <Box component="footer" sx={{
+        width: '100%',
+        mt: 6,
+        py: 3,
+        textAlign: 'center',
+        color: 'text.secondary',
+        fontSize: { xs: '0.95rem', md: '1rem' },
+        letterSpacing: 0.2,
+        background: 'transparent',
+        position: 'relative',
+      }}>
+        <Typography variant="body2">
+          Laget av Vetle Marentius &copy; {new Date().getFullYear()}
+        </Typography>
+      </Box>
+      </Container>
+    </ProtectedRoute>
   );
 }
