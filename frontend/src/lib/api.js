@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://175c4db0-bc5d-4e1b-8ddb-05e81448a6f6-eu-west-1.apps.astra.datastax.com/api/rest/v2/namespaces/timeks';
+const API_BASE_URL = 'https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api';
 
 // Generell funksjon for å håndtere fetch-kall
 async function request(endpoint, options = {}) {
