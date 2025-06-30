@@ -113,18 +113,20 @@ export default function Home() {
     }
   };
 
-  const handleRegisterTime = async (e) => {
-    e.preventDefault();
+  const handleRegisterTime = async (registreringer) => {
     setModalLoading(true);
     setTimeEntryError('');
     try {
-      const company = companies.find(c => c.id === timeEntryValues.companyId);
-      const entryToSave = {
-        ...timeEntryValues,
-        hours: parseFloat(timeEntryValues.hours),
-        companyName: company ? company.name : '',
-      };
-      await api.createTimeEntry(entryToSave);
+      // Legg til companyName på hver registrering
+      const entriesToSave = registreringer.map(entry => {
+        const company = companies.find(c => c.id === entry.companyId);
+        return {
+          ...entry,
+          hours: parseFloat(entry.hours),
+          companyName: company ? company.name : '',
+        };
+      });
+      await api.massRegisterTime(entriesToSave);
       setRegisterTimeModalOpen(false);
       const updatedEntries = await api.getTimeEntries();
       setAllTimeEntries(updatedEntries);

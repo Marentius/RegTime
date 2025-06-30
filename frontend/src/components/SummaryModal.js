@@ -6,6 +6,7 @@ import {
   FormControl, InputLabel, Select, MenuItem, Paper
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExcelJS from 'exceljs';
 
 const FilterSelect = ({ label, value, onChange, options, ...props }) => (
   <FormControl size="small" {...props}>
@@ -60,6 +61,46 @@ export default function SummaryModal({ open, onClose, entries, companies }) {
     setFilterMonth('Alle');
   };
 
+  const handleDownloadExcel = async () => {
+    // Lag en flat array med alle summerte rader
+    const rows = [];
+    Object.entries(summary).forEach(([company, data]) => {
+      Object.entries(data.categories).forEach(([category, hours]) => {
+        rows.push({
+          Firma: company,
+          Kategori: category,
+          Timer: hours.toFixed(2),
+          År: filterYear === 'Alle' ? '' : filterYear,
+          Måned: filterMonth === 'Alle' ? '' : (filterMonth ? new Date(filterYear, filterMonth-1).toLocaleString('nb-NO', { month: 'long' }) : ''),
+        });
+      });
+    });
+    if (rows.length === 0) return;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Summering');
+    worksheet.columns = [
+      { header: 'Firma', key: 'Firma', width: 30 },
+      { header: 'Kategori', key: 'Kategori', width: 20 },
+      { header: 'Timer', key: 'Timer', width: 12 },
+      { header: 'År', key: 'År', width: 10 },
+      { header: 'Måned', key: 'Måned', width: 15 },
+    ];
+    rows.forEach(row => worksheet.addRow(row));
+    // Lagre filen i browser
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'regtime_summering.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Summering og Rapport</DialogTitle>
@@ -71,6 +112,7 @@ export default function SummaryModal({ open, onClose, entries, companies }) {
             <FilterSelect label="År" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} options={availableYears} sx={{ minWidth: 120 }}/>
             <FilterSelect label="Måned" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} options={availableMonths} sx={{ minWidth: 140 }} disabled={filterYear === 'Alle'}/>
             <Button onClick={handleResetFilters} sx={{ height: '40px' }}>Nullstill</Button>
+            <Button onClick={handleDownloadExcel} sx={{ height: '40px' }} variant="contained" color="success">Last ned Excel</Button>
           </Box>
         </Paper>
 

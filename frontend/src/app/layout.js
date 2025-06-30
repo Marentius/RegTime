@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "RegTime - Timeføring System",
-  description: "Enkel timeføring for testing av backend",
+  title: "RegTime - Timeregistrering",
+  description: "Enkel timeregistrering for deg som fakturerer til kunder",
 };
 
 export default function RootLayout({ children }) {

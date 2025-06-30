@@ -66,4 +66,17 @@ export const createTimeEntry = (timeEntryData) => request('/timer', {
 });
 export const deleteTimeEntry = (id) => request(`/timer/${id}`, {
   method: 'DELETE',
-}); 
+});
+
+export const massRegisterTime = async (entries) => {
+  // Registrer alle entries parallelt, men håndter feil individuelt
+  const results = await Promise.allSettled(
+    entries.map(entry => createTimeEntry(entry))
+  );
+  // Kast feil hvis noen feiler
+  const errors = results.filter(r => r.status === 'rejected');
+  if (errors.length > 0) {
+    throw new Error('En eller flere registreringer feilet.');
+  }
+  return results.map(r => r.value);
+}; 
