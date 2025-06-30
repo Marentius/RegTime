@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import CompanyGrid from '../components/CompanyGrid';
 import AddCompanyModal from '../components/AddCompanyModal';
@@ -41,6 +42,8 @@ export default function Home() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -143,12 +146,24 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (!isAuthenticated) {
+      router.push('/login');
+    } else {
+      setIsAuthorized(true);
+      fetchData();
+    }
+  }, [router]);
 
   const filteredCompanies = companies.filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (!isAuthorized) {
+    // Returner null (eller en lasteindikator) for å unngå at innholdet blinker
+    // for uautoriserte brukere før de blir videresendt.
+    return null;
+  }
 
   return (
     <div className="min-h-screen py-8">
