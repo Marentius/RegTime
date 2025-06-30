@@ -181,10 +181,10 @@ export default function Home() {
         <main>
           <Box sx={{ my: { xs: 3, md: 6 }, textAlign: 'center' }}>
               <Typography variant="h4" component="h1" gutterBottom sx={{ fontSize: { xs: '1.5rem', md: '2.2rem' } }}>
-                  Selskaper
+                  Kunder
               </Typography>
               <Typography color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.2rem' } }}>
-                  Velg et selskap for å se detaljer eller opprett et nytt.
+                  Velg en kunde for å se detaljer eller opprett en ny.
               </Typography>
           </Box>
 
@@ -199,7 +199,7 @@ export default function Home() {
           }}>
             <SearchBar
               onSearch={setSearchTerm}
-              placeholder="Søk etter selskap..."
+              placeholder="Søk etter kunde..."
             />
             {isMobile && (
               <Button
@@ -223,7 +223,7 @@ export default function Home() {
                 py: { xs: 1.2, md: 1.7 },
               }}
             >
-              Legg til selskap
+              Legg til kunde
             </Button>
           </Box>
           <Box

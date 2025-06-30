@@ -4,7 +4,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } 
 export default function AddCompanyModal({ open, onClose, onSubmit, value, onChange, loading }) {
   return (
     <Dialog open={open} onClose={onClose} PaperProps={{ component: 'form', onSubmit: onSubmit }}>
-      <DialogTitle>Legg til nytt selskap</DialogTitle>
+      <DialogTitle>Legg til ny kunde</DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
@@ -12,7 +12,7 @@ export default function AddCompanyModal({ open, onClose, onSubmit, value, onChan
           margin="dense"
           id="name"
           name="name"
-          label="Selskapsnavn"
+          label="Kundenavn"
           type="text"
           fullWidth
           variant="standard"
@@ -23,7 +23,7 @@ export default function AddCompanyModal({ open, onClose, onSubmit, value, onChan
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>Avbryt</Button>
         <Button type="submit" variant="contained" disabled={loading}>
-          {loading ? "Lagrer..." : "Opprett selskap"}
+          {loading ? "Lagrer..." : "Opprett kunde"}
         </Button>
       </DialogActions>
     </Dialog>

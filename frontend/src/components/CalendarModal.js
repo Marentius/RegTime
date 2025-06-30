@@ -118,7 +118,7 @@ export default function CalendarModal({ open, onClose, entries, currentDate, onD
           ))}
         </Grid>
         <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-            <Typography variant="subtitle2" gutterBottom>Tegnforklaring</Typography>
+            <Typography variant="subtitle2" gutterBottom>Kategori</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {categories.map(cat => (
                     <Chip key={cat} label={cat} size="small" variant="outlined" color={getCategoryColor(cat)} />

@@ -11,13 +11,13 @@ export default function RegisterTimeModal({ open, onClose, onSubmit, companies, 
         
         <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, mt: 2 }}>
           <FormControl fullWidth margin="dense">
-            <InputLabel id="company-select-label">Selskap</InputLabel>
+            <InputLabel id="company-select-label">Kunde</InputLabel>
             <Select
               labelId="company-select-label"
               id="companyId"
               name="companyId"
               value={values.companyId}
-              label="Selskap"
+              label="Kunde"
               onChange={e => onChange('companyId', e.target.value)}
               required
             >
@@ -26,7 +26,7 @@ export default function RegisterTimeModal({ open, onClose, onSubmit, companies, 
               ))}
             </Select>
           </FormControl>
-          <IconButton onClick={onAddCompany} color="primary" title="Legg til nytt selskap">
+          <IconButton onClick={onAddCompany} color="primary" title="Legg til ny kunde">
             <AddCircleOutlineIcon />
           </IconButton>
         </Box>

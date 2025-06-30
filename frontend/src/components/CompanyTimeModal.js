@@ -52,7 +52,7 @@ export default function CompanyTimeModal({ open, onClose, company, entries, onDe
           </TableContainer>
         ) : (
           <Box sx={{ mt: 2, p: 3, textAlign: 'center' }}>
-            <Typography>Ingen timeføringer funnet for dette selskapet.</Typography>
+            <Typography>Ingen timeføringer funnet for denne kunden.</Typography>
           </Box>
         )}
       </DialogContent>

@@ -67,7 +67,7 @@ export default function SummaryModal({ open, onClose, entries, companies }) {
         <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
           <Typography variant="h6" gutterBottom>Filter</Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-            <FilterSelect label="Selskap" value={filterCompany} onChange={(e) => setFilterCompany(e.target.value)} options={companyOptions} sx={{ minWidth: 150, flexGrow: 1 }} />
+            <FilterSelect label="Kunde" value={filterCompany} onChange={(e) => setFilterCompany(e.target.value)} options={companyOptions} sx={{ minWidth: 150, flexGrow: 1 }} />
             <FilterSelect label="År" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} options={availableYears} sx={{ minWidth: 120 }}/>
             <FilterSelect label="Måned" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} options={availableMonths} sx={{ minWidth: 140 }} disabled={filterYear === 'Alle'}/>
             <Button onClick={handleResetFilters} sx={{ height: '40px' }}>Nullstill</Button>
