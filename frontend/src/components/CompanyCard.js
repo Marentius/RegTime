@@ -9,7 +9,7 @@ export default function CompanyCard({ name, onClick, onDelete }) {
 
   return (
     <div
-      className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center cursor-pointer hover:shadow-lg transition relative"
+      className="bg-white bg-opacity-75 rounded-lg shadow p-6 flex flex-col items-center justify-center cursor-pointer hover:shadow-lg transition relative"
       onClick={onClick}
     >
       <button
