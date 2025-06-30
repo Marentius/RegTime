@@ -1,34 +1,6 @@
 import React, { useState } from 'react';
-
-function getWeek(dateStr) {
-  const d = new Date(dateStr);
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-  const yearStart = new Date(d.getFullYear(), 0, 1);
-  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return weekNo;
-}
-
-function getMonth(dateStr) {
-  return new Date(dateStr).getMonth() + 1;
-}
-
-function getYear(dateStr) {
-  return new Date(dateStr).getFullYear();
-}
-
-function sumBy(arr, keyFn) {
-  const sums = {};
-  arr.forEach(entry => {
-    const key = keyFn(entry);
-    sums[key] = (sums[key] || 0) + Number(entry.hours);
-  });
-  return sums;
-}
-
-function unique(arr) {
-  return Array.from(new Set(arr)).sort((a, b) => a - b);
-}
+import { getWeek, getMonth, getYear, sumBy, unique } from '../lib/utils';
+import { deleteTimeEntry } from '../lib/api';
 
 export default function CompanyTimeModal({ open, onClose, company, timeEntries, loading, onTimeEntryDeleted }) {
   const [filterYear, setFilterYear] = useState('Alle');
@@ -39,13 +11,16 @@ export default function CompanyTimeModal({ open, onClose, company, timeEntries, 
 
   if (!open || !company) return null;
 
-  // Finn unike år, måneder, uker
-  const years = unique(timeEntries.map(e => getYear(e.date)));
-  const months = unique(timeEntries.map(e => getMonth(e.date)));
-  const weeks = unique(timeEntries.map(e => getWeek(e.date)));
+  // Filtrer først på selskap
+  const companyEntries = timeEntries.filter(e => e.companyId === company.id);
 
-  // Filtrer entries
-  let filtered = timeEntries;
+  // Finn unike år, måneder, uker fra selskapets entries
+  const years = unique(companyEntries.map(e => getYear(e.date)));
+  const months = unique(companyEntries.map(e => getMonth(e.date)));
+  const weeks = unique(companyEntries.map(e => getWeek(e.date)));
+
+  // Filtrer videre på tid (år, måned, uke)
+  let filtered = companyEntries;
   if (filterYear !== 'Alle') filtered = filtered.filter(e => getYear(e.date) === Number(filterYear));
   if (filterMonth !== 'Alle') filtered = filtered.filter(e => getMonth(e.date) === Number(filterMonth));
   if (filterWeek !== 'Alle') filtered = filtered.filter(e => getWeek(e.date) === Number(filterWeek));
@@ -58,22 +33,15 @@ export default function CompanyTimeModal({ open, onClose, company, timeEntries, 
   const handleDelete = async (entry) => {
     setDeleting(true);
     try {
-      const response = await fetch(`https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api/timer/${entry.id}`, {
-        method: 'DELETE',
-      });
-      
-      if (response.ok) {
-        // Kall callback for å oppdatere listen
-        if (onTimeEntryDeleted) {
-          onTimeEntryDeleted(entry.id);
-        }
-        setDeleteConfirm(null);
-      } else {
-        alert('Feil ved sletting av time entry');
+      await deleteTimeEntry(entry.id);
+      // Kall callback for å oppdatere listen
+      if (onTimeEntryDeleted) {
+        onTimeEntryDeleted(entry.id);
       }
+      setDeleteConfirm(null);
     } catch (error) {
       console.error('Error deleting time entry:', error);
-      alert('Feil ved sletting av time entry');
+      alert('Feil ved sletting av timeføring: ' + error.message);
     } finally {
       setDeleting(false);
     }

@@ -1,34 +1,5 @@
 import React, { useState } from 'react';
-
-function getWeek(dateStr) {
-  const d = new Date(dateStr);
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-  const yearStart = new Date(d.getFullYear(), 0, 1);
-  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return weekNo;
-}
-
-function getMonth(dateStr) {
-  return new Date(dateStr).getMonth() + 1;
-}
-
-function getYear(dateStr) {
-  return new Date(dateStr).getFullYear();
-}
-
-function sumBy(arr, keyFn) {
-  const sums = {};
-  arr.forEach(entry => {
-    const key = keyFn(entry);
-    sums[key] = (sums[key] || 0) + Number(entry.hours);
-  });
-  return sums;
-}
-
-function unique(arr) {
-  return Array.from(new Set(arr)).sort((a, b) => a - b);
-}
+import { getWeek, getMonth, getYear, sumBy, unique } from '../lib/utils';
 
 export default function SummaryModal({ open, onClose, companies, timeEntries }) {
   const [filterYear, setFilterYear] = useState('Alle');

@@ -9,12 +9,15 @@ import RegisterTimeModal from '../components/RegisterTimeModal';
 import CompanyTimeModal from '../components/CompanyTimeModal';
 import CalendarModal from '../components/CalendarModal';
 import SummaryModal from '../components/SummaryModal';
+import * as api from '../lib/api';
 
 export default function Home() {
   const [companies, setCompanies] = useState([]);
+  const [timeEntries, setTimeEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [showModal, setShowModal] = useState(false);
   const [newCompany, setNewCompany] = useState("");
-  const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [registerValues, setRegisterValues] = useState({
     companyId: '',
@@ -24,70 +27,43 @@ export default function Home() {
   });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  // Ny state for selskapstimer
   const [selectedCompany, setSelectedCompany] = useState(null);
-  const [companyTimeEntries, setCompanyTimeEntries] = useState([]);
-  const [companyTimeLoading, setCompanyTimeLoading] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+
+  // State for kalender-måned og år
+  const [calendarDate, setCalendarDate] = useState(new Date());
+
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Ny state for kalender
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarEntries, setCalendarEntries] = useState([]);
-  const [calendarLoading, setCalendarLoading] = useState(false);
-  const today = new Date();
-  const [calendarMonth, setCalendarMonth] = useState(today.getMonth());
-  const [calendarYear, setCalendarYear] = useState(today.getFullYear());
-
-  // Ny state for summering
-  const [showSummary, setShowSummary] = useState(false);
-  const [summaryEntries, setSummaryEntries] = useState([]);
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const summaryYear = today.getFullYear();
-  const summaryMonth = today.getMonth() + 1;
-  const summaryWeek = (() => {
-    const d = new Date(today);
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-    const yearStart = new Date(d.getFullYear(), 0, 1);
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  })();
-
-  // Hent alle selskaper
-  const fetchCompanies = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api/companies');
-      if (res.ok) {
-        const data = await res.json();
-        setCompanies(data);
-      }
+      const [companiesData, timeEntriesData] = await Promise.all([
+        api.getCompanies(),
+        api.getTimeEntries()
+      ]);
+      setCompanies(companiesData);
+      setTimeEntries(timeEntriesData);
     } catch (e) {
-      // Håndter evt. feil
+      console.error("Failed to fetch data", e);
     } finally {
       setLoading(false);
     }
   };
 
-  // Opprett nytt selskap
   const createCompany = async (e) => {
     e.preventDefault();
     if (!newCompany.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch('https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api/companies', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCompany.trim() }),
-      });
-      if (res.ok) {
-        setNewCompany("");
-        setShowModal(false);
-        fetchCompanies();
-      }
+      await api.createCompany({ name: newCompany.trim() });
+      setNewCompany("");
+      setShowModal(false);
+      fetchData();
     } catch (e) {
-      // Håndter evt. feil
+      console.error("Failed to create company", e);
     } finally {
       setLoading(false);
     }
@@ -108,98 +84,38 @@ export default function Home() {
       return;
     }
     try {
-      const response = await fetch('https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api/timer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...registerValues,
-          companyName: company.name,
-        }),
+      await api.createTimeEntry({
+        ...registerValues,
+        companyName: company.name,
       });
-      if (response.ok) {
-        setShowRegisterModal(false);
-        setRegisterValues({
-          companyId: '',
-          description: '',
-          hours: '',
-          date: new Date().toISOString().split('T')[0],
-        });
-      } else {
-        setRegisterError('Feil ved registrering av timeføring');
-      }
+      setShowRegisterModal(false);
+      setRegisterValues({
+        companyId: '',
+        description: '',
+        hours: '',
+        date: new Date().toISOString().split('T')[0],
+      });
+      fetchData();
     } catch (error) {
-      setRegisterError('Kunne ikke koble til serveren');
+      setRegisterError(error.message || 'Kunne ikke koble til serveren');
     } finally {
       setRegisterLoading(false);
     }
   };
 
-  // Hent timer for valgt selskap og åpne modal
-  const handleCompanyClick = async (company) => {
+  const handleCompanyClick = (company) => {
     setSelectedCompany(company);
-    setCompanyTimeLoading(true);
-    setCompanyTimeEntries([]);
-    try {
-      const res = await fetch(`https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api/timer/selskap/${company.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setCompanyTimeEntries(data);
-      } else {
-        setCompanyTimeEntries([]);
-      }
-    } catch (e) {
-      setCompanyTimeEntries([]);
-    } finally {
-      setCompanyTimeLoading(false);
-    }
   };
 
-  // Håndter sletting av time entry
-  const handleTimeEntryDeleted = (deletedId) => {
-    setCompanyTimeEntries(prev => prev.filter(entry => entry.id !== deletedId));
-  };
-
-  const handleOpenCalendar = async () => {
-    setShowCalendar(true);
-    setCalendarLoading(true);
-    try {
-      const res = await fetch('https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api/timer');
-      if (res.ok) {
-        const data = await res.json();
-        setCalendarEntries(data);
-      } else {
-        setCalendarEntries([]);
-      }
-    } catch (e) {
-      setCalendarEntries([]);
-    } finally {
-      setCalendarLoading(false);
-    }
-  };
-
-  const handleOpenSummary = async () => {
-    setShowSummary(true);
-    setSummaryLoading(true);
-    try {
-      const res = await fetch('https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api/timer');
-      if (res.ok) {
-        const data = await res.json();
-        setSummaryEntries(data);
-      } else {
-        setSummaryEntries([]);
-      }
-    } catch (e) {
-      setSummaryEntries([]);
-    } finally {
-      setSummaryLoading(false);
-    }
+  const handleTimeEntryDeleted = () => {
+    fetchData();
+    setSelectedCompany(null);
   };
 
   useEffect(() => {
-    fetchCompanies();
+    fetchData();
   }, []);
 
-  // Filtrer selskaper basert på søk
   const filteredCompanies = companies.filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -210,8 +126,8 @@ export default function Home() {
         <Header
           onOversikt={() => {}}
           onRegistrere={() => setShowRegisterModal(true)}
-          onKalender={handleOpenCalendar}
-          onSummering={handleOpenSummary}
+          onKalender={() => setShowCalendar(true)}
+          onSummering={() => setShowSummary(true)}
           onAddCompany={() => setShowModal(true)}
         />
         <div className="flex flex-wrap gap-4 mb-6">
@@ -242,25 +158,24 @@ export default function Home() {
           open={!!selectedCompany}
           onClose={() => setSelectedCompany(null)}
           company={selectedCompany}
-          timeEntries={companyTimeEntries}
-          loading={companyTimeLoading}
+          timeEntries={timeEntries}
+          loading={loading}
           onTimeEntryDeleted={handleTimeEntryDeleted}
         />
         <CalendarModal
           open={showCalendar}
           onClose={() => setShowCalendar(false)}
-          timeEntries={calendarEntries}
-          month={calendarMonth}
-          year={calendarYear}
+          timeEntries={timeEntries}
+          loading={loading}
+          currentDate={calendarDate}
+          onDateChange={setCalendarDate}
         />
         <SummaryModal
           open={showSummary}
           onClose={() => setShowSummary(false)}
           companies={companies}
-          timeEntries={summaryEntries}
-          year={summaryYear}
-          month={summaryMonth}
-          week={summaryWeek}
+          timeEntries={timeEntries}
+          loading={loading}
         />
       </div>
     </div>

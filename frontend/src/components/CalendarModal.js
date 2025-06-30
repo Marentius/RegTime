@@ -1,15 +1,12 @@
 import React from 'react';
+import { getDaysInMonth, getFirstDayOfWeek } from '../lib/utils';
 
-function getDaysInMonth(month, year) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function getFirstDayOfWeek(month, year) {
-  return new Date(year, month, 1).getDay();
-}
-
-export default function CalendarModal({ open, onClose, timeEntries, month, year }) {
+export default function CalendarModal({ open, onClose, timeEntries, currentDate, onDateChange }) {
   if (!open) return null;
+
+  const month = currentDate.getMonth();
+  const year = currentDate.getFullYear();
+
   const daysInMonth = getDaysInMonth(month, year);
   const firstDayOfWeek = getFirstDayOfWeek(month, year);
 
@@ -35,6 +32,14 @@ export default function CalendarModal({ open, onClose, timeEntries, month, year 
   const blanks = Array(firstDayOfWeek).fill(null);
   const calendarCells = [...blanks, ...days];
 
+  const handlePrevMonth = () => {
+    onDateChange(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    onDateChange(new Date(year, month + 1, 1));
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-5xl relative">
@@ -45,7 +50,13 @@ export default function CalendarModal({ open, onClose, timeEntries, month, year 
         >
           &times;
         </button>
-        <h2 className="text-2xl font-bold mb-4">Kalender {year}-{String(month + 1).padStart(2, '0')}</h2>
+        <div className="flex justify-between items-center mb-4">
+            <button onClick={handlePrevMonth} className="px-3 py-1 bg-gray-200 rounded">&lt; Forrige</button>
+            <h2 className="text-2xl font-bold">
+            {currentDate.toLocaleString('no-NO', { month: 'long', year: 'numeric' })}
+            </h2>
+            <button onClick={handleNextMonth} className="px-3 py-1 bg-gray-200 rounded">Neste &gt;</button>
+        </div>
         <div className="grid grid-cols-7 gap-2">
           {["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"].map((d) => (
             <div key={d} className="text-center font-semibold text-gray-700 mb-2">{d}</div>
@@ -56,8 +67,8 @@ export default function CalendarModal({ open, onClose, timeEntries, month, year 
                 <div className="font-bold text-xs mb-1">{cell.day}</div>
                 <ul className="space-y-1">
                   {cell.entries.map((entry) => (
-                    <li key={entry.id} className="text-xs bg-blue-100 rounded px-1 py-0.5">
-                      {entry.description} ({entry.hours} t)
+                    <li key={entry.id} className="text-xs bg-blue-100 rounded px-1 py-0.5" title={`${entry.companyName}: ${entry.description}`}>
+                      <span className="font-semibold">{entry.hours}t</span> - {entry.companyName}
                     </li>
                   ))}
                 </ul>
