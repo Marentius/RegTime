@@ -13,17 +13,18 @@ public class CompanyController {
     private CompanyService service;
 
     @GetMapping
-    public List<Company> getAll() {
-        return service.getAll();
+    public List<Company> getAll(@RequestHeader("X-USER-ID") String userId) {
+        return service.getAll(userId);
     }
 
     @PostMapping
-    public Company create(@RequestBody Company company) {
+    public Company create(@RequestHeader("X-USER-ID") String userId, @RequestBody Company company) {
+        company.setUserId(userId);
         return service.create(company);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
-        service.delete(id);
+    public void delete(@RequestHeader("X-USER-ID") String userId, @PathVariable String id) {
+        service.delete(userId, id);
     }
 } 

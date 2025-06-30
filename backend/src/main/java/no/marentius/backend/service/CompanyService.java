@@ -16,48 +16,47 @@ public class CompanyService {
     @Autowired
     private TimeEntryService timeEntryService;
 
-    public List<Company> getAll() {
+    public List<Company> getAll(String userId) {
         List<Company> companies = new ArrayList<>();
-        ResultSet rs = session.execute("SELECT id, name FROM companies");
+        ResultSet rs = session.execute("SELECT id, name, user_id FROM companiesuser WHERE user_id = ?", userId);
         for (Row row : rs) {
             Company c = new Company();
-            c.setId(row.getUuid("id").toString());
+            c.setId(row.getString("id"));
             c.setName(row.getString("name"));
+            c.setUserId(row.getString("user_id"));
             companies.add(c);
         }
         return companies;
     }
 
     public Company create(Company company) {
-        // Sjekk om navn finnes fra før
-        ResultSet rs = session.execute("SELECT id FROM companies WHERE name = ? ALLOW FILTERING", company.getName());
+        // Sjekk om navn finnes fra før for denne brukeren
+        ResultSet rs = session.execute("SELECT id FROM companiesuser WHERE user_id = ? AND name = ? ALLOW FILTERING", company.getUserId(), company.getName());
         if (rs.one() != null) {
-            throw new RuntimeException("Selskap med dette navnet finnes allerede");
+            throw new RuntimeException("Selskap med dette navnet finnes allerede for denne brukeren");
         }
-        UUID id = UUID.randomUUID();
+        String id = UUID.randomUUID().toString();
         session.execute(
             SimpleStatement.newInstance(
-                "INSERT INTO companies (id, name) VALUES (?, ?)",
-                id, company.getName()
+                "INSERT INTO companiesuser (user_id, id, name) VALUES (?, ?, ?)",
+                company.getUserId(), id, company.getName()
             )
         );
-        company.setId(id.toString());
+        company.setId(id);
         return company;
     }
 
-    public void delete(String id) {
+    public void delete(String userId, String id) {
         // 1. Finn og slett alle tilknyttede timeføringer
-        List<TimeEntry> entriesToDelete = timeEntryService.getByCompanyId(id);
+        List<TimeEntry> entriesToDelete = timeEntryService.getByCompanyId(userId, id);
         for (TimeEntry entry : entriesToDelete) {
-            timeEntryService.deleteById(entry.getId());
+            timeEntryService.deleteById(userId, entry.getId());
         }
-
         // 2. Slett selve selskapet
-        UUID companyId = UUID.fromString(id);
         session.execute(
             SimpleStatement.newInstance(
-                "DELETE FROM companies WHERE id = ?",
-                companyId
+                "DELETE FROM companiesuser WHERE user_id = ? AND id = ?",
+                userId, id
             )
         );
     }

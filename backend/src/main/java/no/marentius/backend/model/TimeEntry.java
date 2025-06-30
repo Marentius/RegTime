@@ -14,6 +14,7 @@ public class TimeEntry {
     private String companyId;
     private String companyName;
     private String category;
+    private String userId;
 
     public TimeEntry() {}
 
@@ -95,5 +96,13 @@ public class TimeEntry {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

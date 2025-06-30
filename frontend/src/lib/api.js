@@ -1,10 +1,15 @@
-const API_BASE_URL = 'https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 // Generell funksjon for å håndtere fetch-kall
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  const userId = typeof window !== "undefined" ? localStorage.getItem('userId') : null;
   const config = {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(userId ? { 'X-USER-ID': userId } : {}),
+      ...options.headers
+    },
     ...options,
   };
 
@@ -20,9 +25,8 @@ async function request(endpoint, options = {}) {
       }
       throw new Error(errorData.message || 'En ukjent feil oppstod');
     }
-    // Returner ingenting hvis det er en 204 No Content, et DELETE-kall,
-    // eller en vellykket innlogging, da disse ikke har en JSON-kropp.
-    if (response.status === 204 || options.method === 'DELETE' || endpoint === '/auth/login') {
+    // Returner ingenting hvis det er en 204 No Content eller et DELETE-kall.
+    if (response.status === 204 || options.method === 'DELETE') {
       return;
     }
     return response.json();
@@ -43,9 +47,14 @@ export const deleteCompany = (id) => request(`/companies/${id}`, {
 });
 
 // Autentisering
-export const login = (password) => request('/auth/login', {
+export const login = ({ username, password }) => request('/auth/login', {
   method: 'POST',
-  body: JSON.stringify({ password }),
+  body: JSON.stringify({ username, password }),
+});
+
+export const register = ({ username, password }) => request('/auth/register', {
+  method: 'POST',
+  body: JSON.stringify({ username, password }),
 });
 
 // Timer
