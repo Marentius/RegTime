@@ -131,13 +131,14 @@ export default function Home() {
     setDeleteLoading(true);
     try {
       await api.deleteCompany(companyToDelete.id);
-      handleCloseDeleteModal();
-      fetchData(); // Hent data på nytt
+      // Omdiriger til forsiden for en fersk start, som løser problemet med å "henge" på bekreftelsessiden.
+      window.location.href = '/';
     } catch (error) {
       console.error("Failed to delete company", error);
       // Vis en feilmelding til brukeren
-    } finally {
-      setDeleteLoading(false);
+      alert('En feil oppstod under sletting av selskapet.'); // Gi tilbakemelding til bruker
+      setDeleteLoading(false); // Stopp lasting ved feil
+      handleCloseDeleteModal(); // Lukk modalen ved feil
     }
   };
 

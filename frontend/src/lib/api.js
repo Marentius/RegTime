@@ -20,8 +20,8 @@ async function request(endpoint, options = {}) {
       }
       throw new Error(errorData.message || 'En ukjent feil oppstod');
     }
-    // Returner ingenting hvis det er en 204 No Content respons (f.eks. ved DELETE)
-    if (response.status === 204) {
+    // Returner ingenting hvis det er en 204 No Content respons eller et DELETE-kall
+    if (response.status === 204 || options.method === 'DELETE') {
       return;
     }
     return response.json();

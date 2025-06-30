@@ -6,8 +6,6 @@ import com.datastax.oss.driver.api.core.cql.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Service
 public class TimeEntryService {
