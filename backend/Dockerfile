@@ -1,7 +1,7 @@
 FROM openjdk:21
 
 WORKDIR /app
-COPY target/TimeApp-0.0.1-SNAPSHOT.jar app.jar
+COPY target/backend-0.0.1-SNAPSHOT.jar app.jar
 
 ENV TZ=Europe/Oslo
 

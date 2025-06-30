@@ -154,6 +154,11 @@ export default function Home() {
     }
   };
 
+  // Håndter sletting av time entry
+  const handleTimeEntryDeleted = (deletedId) => {
+    setCompanyTimeEntries(prev => prev.filter(entry => entry.id !== deletedId));
+  };
+
   const handleOpenCalendar = async () => {
     setShowCalendar(true);
     setCalendarLoading(true);
@@ -239,6 +244,7 @@ export default function Home() {
           company={selectedCompany}
           timeEntries={companyTimeEntries}
           loading={companyTimeLoading}
+          onTimeEntryDeleted={handleTimeEntryDeleted}
         />
         <CalendarModal
           open={showCalendar}

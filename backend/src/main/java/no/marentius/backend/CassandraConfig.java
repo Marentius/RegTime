@@ -4,7 +4,11 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import java.nio.file.Paths;
+import org.springframework.core.io.ClassPathResource;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 @Configuration
 public class CassandraConfig {
@@ -12,13 +16,18 @@ public class CassandraConfig {
     private String applicationToken;
     @Value("${astra.db.keyspace}")
     private String keyspace;
-    @Value("${astra.db.secureConnectBundle}")
-    private String bundlePath;
 
     @Bean
-    public CqlSession session() {
+    public CqlSession session() throws IOException {
+        // Kopier secure-connect-bundle fra classpath til temp-fil
+        ClassPathResource resource = new ClassPathResource("secure-connect-bundle.zip");
+        Path tempFile = Files.createTempFile("secure-connect-bundle", ".zip");
+        
+        // Bruk REPLACE_EXISTING for å overskrive hvis filen allerede eksisterer
+        Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+        
         return CqlSession.builder()
-                .withCloudSecureConnectBundle(Paths.get("src/main/resources/secure-connect-bundle.zip"))
+                .withCloudSecureConnectBundle(tempFile)
                 .withAuthCredentials("token", applicationToken)
                 .withKeyspace(keyspace)
                 .build();
