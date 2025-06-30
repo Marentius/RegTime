@@ -17,7 +17,7 @@ public class TimeEntryService {
         String id = UUID.randomUUID().toString();
         entry.setId(id);
         
-        String insertQuery = "INSERT INTO timeentries (id, customer, description, hours, date, companyId, companyName) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String insertQuery = "INSERT INTO timeentries (id, customer, description, hours, date, companyId, companyName, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         PreparedStatement prepared = session.prepare(insertQuery);
         BoundStatement bound = prepared.bind(
@@ -27,7 +27,8 @@ public class TimeEntryService {
             entry.getHours(),
             entry.getDate(),
             entry.getCompanyId(),
-            entry.getCompanyName()
+            entry.getCompanyName(),
+            entry.getCategory()
         );
         
         session.execute(bound);
@@ -35,7 +36,7 @@ public class TimeEntryService {
     }
 
     public List<TimeEntry> getAll() {
-        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName FROM timeentries";
+        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName, category FROM timeentries";
         ResultSet rs = session.execute(selectQuery);
         
         List<TimeEntry> entries = new ArrayList<>();
@@ -48,13 +49,14 @@ public class TimeEntryService {
             entry.setDate(row.getString("date"));
             entry.setCompanyId(row.getString("companyId"));
             entry.setCompanyName(row.getString("companyName"));
+            entry.setCategory(row.getString("category"));
             entries.add(entry);
         }
         return entries;
     }
 
     public List<TimeEntry> getByCustomer(String customer) {
-        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName FROM timeentries WHERE customer LIKE ? ALLOW FILTERING";
+        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName, category FROM timeentries WHERE customer LIKE ? ALLOW FILTERING";
         
         PreparedStatement prepared = session.prepare(selectQuery);
         BoundStatement bound = prepared.bind("%" + customer + "%");
@@ -70,13 +72,14 @@ public class TimeEntryService {
             entry.setDate(row.getString("date"));
             entry.setCompanyId(row.getString("companyId"));
             entry.setCompanyName(row.getString("companyName"));
+            entry.setCategory(row.getString("category"));
             entries.add(entry);
         }
         return entries;
     }
 
     public List<TimeEntry> getByCompanyId(String companyId) {
-        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName FROM timeentries WHERE companyId = ? ALLOW FILTERING";
+        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName, category FROM timeentries WHERE companyId = ? ALLOW FILTERING";
         
         PreparedStatement prepared = session.prepare(selectQuery);
         BoundStatement bound = prepared.bind(companyId);
@@ -92,6 +95,7 @@ public class TimeEntryService {
             entry.setDate(row.getString("date"));
             entry.setCompanyId(row.getString("companyId"));
             entry.setCompanyName(row.getString("companyName"));
+            entry.setCategory(row.getString("category"));
             entries.add(entry);
         }
         return entries;
@@ -103,5 +107,19 @@ public class TimeEntryService {
         PreparedStatement prepared = session.prepare(deleteQuery);
         BoundStatement bound = prepared.bind(id);
         session.execute(bound);
+    }
+
+    public List<String> getUniqueCategories() {
+        String selectQuery = "SELECT category FROM timeentries";
+        ResultSet rs = session.execute(selectQuery);
+        
+        Set<String> categories = new HashSet<>();
+        for (Row row : rs) {
+            String category = row.getString("category");
+            if (category != null && !category.trim().isEmpty()) {
+                categories.add(category);
+            }
+        }
+        return new ArrayList<>(categories);
     }
 }

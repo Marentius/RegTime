@@ -20,8 +20,9 @@ async function request(endpoint, options = {}) {
       }
       throw new Error(errorData.message || 'En ukjent feil oppstod');
     }
-    // Returner ingenting hvis det er en 204 No Content respons eller et DELETE-kall
-    if (response.status === 204 || options.method === 'DELETE') {
+    // Returner ingenting hvis det er en 204 No Content, et DELETE-kall,
+    // eller en vellykket innlogging, da disse ikke har en JSON-kropp.
+    if (response.status === 204 || options.method === 'DELETE' || endpoint === '/auth/login') {
       return;
     }
     return response.json();
@@ -41,8 +42,15 @@ export const deleteCompany = (id) => request(`/companies/${id}`, {
   method: 'DELETE',
 });
 
+// Autentisering
+export const login = (password) => request('/auth/login', {
+  method: 'POST',
+  body: JSON.stringify({ password }),
+});
+
 // Timer
 export const getTimeEntries = () => request('/timer');
+export const getCategories = () => request('/timer/categories');
 export const createTimeEntry = (timeEntryData) => request('/timer', {
   method: 'POST',
   body: JSON.stringify(timeEntryData),

@@ -13,6 +13,7 @@ public class TimeEntry {
     private String rowKey;
     private String companyId;
     private String companyName;
+    private String category;
 
     public TimeEntry() {}
 
@@ -86,5 +87,13 @@ public class TimeEntry {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

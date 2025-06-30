@@ -1,65 +1,103 @@
 import React from 'react';
-import CompanySelect from './CompanySelect';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Select, MenuItem, FormControl, InputLabel, Box, IconButton, Alert } from '@mui/material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-export default function RegisterTimeModal({ open, onClose, onSubmit, companies, values, onChange, loading, error }) {
-  if (!open) return null;
+export default function RegisterTimeModal({ open, onClose, onSubmit, companies, values, onChange, loading, error, categories, onAddCategory, onAddCompany }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
-        <button
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
-          onClick={onClose}
-          aria-label="Lukk"
-        >
-          &times;
-        </button>
-        <h2 className="text-2xl font-bold mb-4">Registrer timer</h2>
-        {error && <div className="mb-2 p-2 bg-red-100 text-red-700 rounded">{error}</div>}
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Selskap</label>
-            <CompanySelect companies={companies} value={values.companyId} onChange={e => onChange('companyId', e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Beskrivelse</label>
-            <textarea
-              value={values.description}
-              onChange={e => onChange('description', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows="3"
+    <Dialog open={open} onClose={onClose} PaperProps={{ component: 'form', onSubmit: onSubmit }} maxWidth="sm" fullWidth>
+      <DialogTitle>Registrer timer</DialogTitle>
+      <DialogContent>
+        {error && <Alert severity="error" sx={{ mt: 2, mb: 1 }}>{error}</Alert>}
+        
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, mt: 2 }}>
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="company-select-label">Selskap</InputLabel>
+            <Select
+              labelId="company-select-label"
+              id="companyId"
+              name="companyId"
+              value={values.companyId}
+              label="Selskap"
+              onChange={e => onChange('companyId', e.target.value)}
               required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Timer</label>
-            <input
-              type="number"
-              step="0.5"
-              value={values.hours}
-              onChange={e => onChange('hours', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Dato</label>
-            <input
-              type="date"
-              value={values.date}
-              onChange={e => onChange('date', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Lagrer...' : 'Registrer timeføring'}
-          </button>
-        </form>
-      </div>
-    </div>
+            >
+              {companies.map((c) => (
+                <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <IconButton onClick={onAddCompany} color="primary" title="Legg til nytt selskap">
+            <AddCircleOutlineIcon />
+          </IconButton>
+        </Box>
+        
+        <TextField
+          margin="dense"
+          id="description"
+          name="description"
+          label="Beskrivelse"
+          type="text"
+          fullWidth
+          multiline
+          rows={3}
+          value={values.description}
+          onChange={e => onChange('description', e.target.value)}
+          required
+        />
+        
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="category-select-label">Kategori</InputLabel>
+            <Select
+              labelId="category-select-label"
+              id="category"
+              name="category"
+              value={values.category}
+              label="Kategori"
+              onChange={e => onChange('category', e.target.value)}
+            >
+              <MenuItem value=""><em>Ingen</em></MenuItem>
+              {categories.map((cat) => (
+                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <IconButton onClick={onAddCategory} color="primary" title="Legg til ny kategori">
+            <AddCircleOutlineIcon />
+          </IconButton>
+        </Box>
+
+        <TextField
+          margin="dense"
+          id="hours"
+          name="hours"
+          label="Timer"
+          type="number"
+          fullWidth
+          value={values.hours}
+          onChange={e => onChange('hours', e.target.value)}
+          inputProps={{ step: "0.5" }}
+          required
+        />
+        <TextField
+          margin="dense"
+          id="date"
+          name="date"
+          label="Dato"
+          type="date"
+          fullWidth
+          value={values.date}
+          onChange={e => onChange('date', e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          required
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={loading}>Avbryt</Button>
+        <Button type="submit" variant="contained" disabled={loading}>
+          {loading ? 'Lagrer...' : 'Registrer'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 } 

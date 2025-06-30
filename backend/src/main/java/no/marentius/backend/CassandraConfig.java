@@ -12,8 +12,10 @@ import java.nio.file.StandardCopyOption;
 
 @Configuration
 public class CassandraConfig {
-    @Value("${astra.db.applicationToken}")
-    private String applicationToken;
+    @Value("${astra.db.clientId}")
+    private String clientId;
+    @Value("${astra.db.clientSecret}")
+    private String clientSecret;
     @Value("${astra.db.keyspace}")
     private String keyspace;
 
@@ -28,7 +30,7 @@ public class CassandraConfig {
         
         return CqlSession.builder()
                 .withCloudSecureConnectBundle(tempFile)
-                .withAuthCredentials("token", applicationToken)
+                .withAuthCredentials(clientId, clientSecret)
                 .withKeyspace(keyspace)
                 .build();
     }

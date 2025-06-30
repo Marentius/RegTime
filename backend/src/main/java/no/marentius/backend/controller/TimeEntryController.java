@@ -39,4 +39,9 @@ public class TimeEntryController {
         return service.getByCompanyId(companyId);
     }
 
+    @GetMapping("/categories")
+    public List<String> getUniqueCategories() {
+        return service.getUniqueCategories();
+    }
+
 }

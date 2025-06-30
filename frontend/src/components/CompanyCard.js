@@ -1,4 +1,6 @@
 import React from 'react';
+import { Card, CardActionArea, CardContent, Typography, IconButton, Box } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function CompanyCard({ name, onClick, onDelete }) {
   // Forhindre at klikk på sletteknappen også utløser 'onClick' på kortet
@@ -8,20 +10,84 @@ export default function CompanyCard({ name, onClick, onDelete }) {
   };
 
   return (
-    <div
-      className="bg-white bg-opacity-75 rounded-lg shadow p-6 flex flex-col items-center justify-center cursor-pointer hover:shadow-lg transition relative"
-      onClick={onClick}
+    <Card
+      sx={{
+        position: 'relative',
+        borderRadius: 2, // 16px
+        minHeight: { xs: 180, sm: 220, md: 260 },
+        width: '100%',
+        minWidth: 0,
+        background: 'linear-gradient(135deg, rgba(169,98,255,0.18) 0%, rgba(239,106,173,0.10) 100%)',
+        boxShadow: '0 4px 24px 0 rgba(169,98,255,0.10)',
+        overflow: 'visible',
+        p: 0,
+        transition: 'transform 0.18s cubic-bezier(.4,2,.6,1), box-shadow 0.18s',
+        '&:hover': {
+          transform: 'translateY(-3px) scale(1.03)',
+          boxShadow: '0 8px 32px 0 rgba(169,98,255,0.18)',
+        },
+        display: 'flex',
+        flexDirection: 'column',
+      }}
     >
-      <button
-        onClick={handleDeleteClick}
-        className="absolute top-2 right-2 text-gray-400 hover:text-red-500 rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-red-500"
-        aria-label="Slett selskap"
+      <CardActionArea
+        onClick={onClick}
+        sx={{
+          borderRadius: 2,
+          p: { xs: 2, sm: 3 },
+          minHeight: { xs: 180, sm: 220, md: 260 },
+          width: '100%',
+          minWidth: 0,
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      <span className="text-xl font-semibold mb-2">{name}</span>
-    </div>
+        <CardContent sx={{
+          p: 0,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Typography
+            variant="h6"
+            component="div"
+            align="center"
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '1.5rem', sm: '2rem' },
+              letterSpacing: 0.5,
+              color: 'text.primary',
+              textShadow: '0 2px 8px rgba(0,0,0,0.10)',
+              width: '100%',
+              wordBreak: 'break-word',
+            }}
+          >
+            {name}
+          </Typography>
+        </CardContent>
+        <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+          <IconButton
+            aria-label="delete"
+            onClick={handleDeleteClick}
+            sx={{
+              color: 'secondary.main',
+              background: 'rgba(239,106,173,0.10)',
+              '&:hover': {
+                background: 'rgba(239,106,173,0.22)',
+                color: 'error.main',
+              },
+              boxShadow: '0 2px 8px 0 rgba(239,106,173,0.10)',
+            }}
+            size="medium"
+          >
+            <DeleteIcon fontSize="medium" />
+          </IconButton>
+        </Box>
+      </CardActionArea>
+    </Card>
   );
 } 

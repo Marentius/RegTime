@@ -1,94 +1,111 @@
-import React, { useState } from 'react';
-import { getWeek, getMonth, getYear, sumBy, unique } from '../lib/utils';
+import React, { useState, useMemo } from 'react';
+import { getMonth, getYear } from '../lib/utils';
+import {
+  Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Box, Typography, Accordion, AccordionSummary, AccordionDetails,
+  FormControl, InputLabel, Select, MenuItem, Paper
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-export default function SummaryModal({ open, onClose, companies, timeEntries }) {
+const FilterSelect = ({ label, value, onChange, options, ...props }) => (
+  <FormControl size="small" {...props}>
+    <InputLabel>{label}</InputLabel>
+    <Select value={value} label={label} onChange={onChange}>
+      <MenuItem value="Alle"><em>Alle</em></MenuItem>
+      {options.map(opt => (
+        <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+);
+
+export default function SummaryModal({ open, onClose, entries, companies }) {
+  const [filterCompany, setFilterCompany] = useState('Alle');
   const [filterYear, setFilterYear] = useState('Alle');
   const [filterMonth, setFilterMonth] = useState('Alle');
-  const [filterWeek, setFilterWeek] = useState('Alle');
 
-  if (!open) return null;
+  const filteredEntries = useMemo(() => {
+    return entries.filter(entry => {
+      if (filterCompany !== 'Alle' && entry.companyId !== filterCompany) return false;
+      if (filterYear !== 'Alle' && getYear(entry.date) !== filterYear) return false;
+      if (filterMonth !== 'Alle' && getMonth(entry.date) !== filterMonth) return false;
+      return true;
+    });
+  }, [entries, filterCompany, filterYear, filterMonth]);
+  
+  const summary = useMemo(() => {
+    return filteredEntries.reduce((acc, entry) => {
+      const company = entry.companyName;
+      if (!acc[company]) {
+        acc[company] = { totalHours: 0, categories: {} };
+      }
+      acc[company].totalHours += parseFloat(entry.hours);
 
-  // Finn unike år, måneder, uker
-  const years = unique(timeEntries.map(e => getYear(e.date)));
-  const months = unique(timeEntries.map(e => getMonth(e.date)));
-  const weeks = unique(timeEntries.map(e => getWeek(e.date)));
+      const category = entry.category || 'Ukategorisert';
+      if (!acc[company].categories[category]) {
+        acc[company].categories[category] = 0;
+      }
+      acc[company].categories[category] += parseFloat(entry.hours);
+      return acc;
+    }, {});
+  }, [filteredEntries]);
 
-  // Filtrer entries
-  let filteredEntries = timeEntries;
-  if (filterYear !== 'Alle') filteredEntries = filteredEntries.filter(e => getYear(e.date) === Number(filterYear));
-  if (filterMonth !== 'Alle') filteredEntries = filteredEntries.filter(e => getMonth(e.date) === Number(filterMonth));
-  if (filterWeek !== 'Alle') filteredEntries = filteredEntries.filter(e => getWeek(e.date) === Number(filterWeek));
+  const availableYears = useMemo(() => [...new Set(entries.map(e => getYear(e.date)))].sort((a,b) => b-a).map(y => ({ value: y, label: y })), [entries]);
+  const availableMonths = useMemo(() => [...new Set(entries.filter(e => filterYear === 'Alle' || getYear(e.date) === filterYear).map(e => getMonth(e.date)))].sort((a,b) => a-b).map(m => ({ value: m, label: new Date(filterYear, m-1).toLocaleString('nb-NO', { month: 'long' }) })), [entries, filterYear]);
+  const companyOptions = companies.map(c => ({ value: c.id, label: c.name }));
+
+  const handleResetFilters = () => {
+    setFilterCompany('Alle');
+    setFilterYear('Alle');
+    setFilterMonth('Alle');
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl relative max-h-[90vh] overflow-y-auto">
-        <button
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
-          onClick={onClose}
-          aria-label="Lukk"
-        >
-          &times;
-        </button>
-        <h2 className="text-2xl font-bold mb-6">Fakturerbare timer per selskap</h2>
-        {/* Filtrering */}
-        <div className="flex gap-4 mb-6">
-          <div>
-            <label className="block text-xs font-semibold mb-1">År</label>
-            <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className="border rounded px-2 py-1">
-              <option value="Alle">Alle</option>
-              {years.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold mb-1">Måned</label>
-            <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="border rounded px-2 py-1">
-              <option value="Alle">Alle</option>
-              {months.map(m => <option key={m} value={m}>{String(m).padStart(2, '0')}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold mb-1">Uke</label>
-            <select value={filterWeek} onChange={e => setFilterWeek(e.target.value)} className="border rounded px-2 py-1">
-              <option value="Alle">Alle</option>
-              {weeks.map(w => <option key={w} value={w}>{w}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="space-y-8">
-          {companies.map(company => {
-            const entries = filteredEntries.filter(e => e.companyId === company.id);
-            const yearSums = sumBy(entries, e => getYear(e.date));
-            const monthSums = sumBy(entries, e => `${getYear(e.date)}-${String(getMonth(e.date)).padStart(2, '0')}`);
-            const weekSums = sumBy(entries, e => `${getYear(e.date)}-UKE${getWeek(e.date)}`);
-            return (
-              <div key={company.id} className="border-b pb-4">
-                <div className="font-bold text-lg mb-2">{company.name}</div>
-                <div className="mb-1 font-semibold">Sum timer pr. år:</div>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {Object.entries(yearSums).length === 0 ? <span className="text-gray-400">Ingen</span> :
-                    Object.entries(yearSums).map(([year, sum]) => (
-                      <span key={year} className="bg-blue-100 rounded px-2 py-1 text-sm">{year}: {sum} t</span>
-                    ))}
-                </div>
-                <div className="mb-1 font-semibold">Sum timer pr. måned:</div>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {Object.entries(monthSums).length === 0 ? <span className="text-gray-400">Ingen</span> :
-                    Object.entries(monthSums).map(([month, sum]) => (
-                      <span key={month} className="bg-green-100 rounded px-2 py-1 text-sm">{month}: {sum} t</span>
-                    ))}
-                </div>
-                <div className="mb-1 font-semibold">Sum timer pr. uke:</div>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(weekSums).length === 0 ? <span className="text-gray-400">Ingen</span> :
-                    Object.entries(weekSums).map(([week, sum]) => (
-                      <span key={week} className="bg-yellow-100 rounded px-2 py-1 text-sm">{week}: {sum} t</span>
-                    ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Summering og Rapport</DialogTitle>
+      <DialogContent>
+        <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+          <Typography variant="h6" gutterBottom>Filter</Typography>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+            <FilterSelect label="Selskap" value={filterCompany} onChange={(e) => setFilterCompany(e.target.value)} options={companyOptions} sx={{ minWidth: 150, flexGrow: 1 }} />
+            <FilterSelect label="År" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} options={availableYears} sx={{ minWidth: 120 }}/>
+            <FilterSelect label="Måned" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} options={availableMonths} sx={{ minWidth: 140 }} disabled={filterYear === 'Alle'}/>
+            <Button onClick={handleResetFilters} sx={{ height: '40px' }}>Nullstill</Button>
+          </Box>
+        </Paper>
+
+        {Object.keys(summary).length > 0 ? (
+          Object.entries(summary).map(([company, data]) => (
+            <Accordion key={company} defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', pr: 1 }}>
+                  <Typography variant="h6">{company}</Typography>
+                  <Typography sx={{ color: 'text.secondary' }}>
+                    Totalt: {data.totalHours.toFixed(2)} timer
+                  </Typography>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box>
+                  {Object.entries(data.categories)
+                    .sort(([, aHours], [, bHours]) => bHours - aHours)
+                    .map(([category, hours]) => (
+                      <Paper key={category} variant="outlined" sx={{ p: 1.5, mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography>{category}</Typography>
+                        <Typography sx={{ fontWeight: 'bold' }}>{hours.toFixed(2)} timer</Typography>
+                      </Paper>
+                  ))}
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          ))
+        ) : (
+          <Typography sx={{ mt: 4, textAlign: 'center' }}>Ingen data å summere for valgt periode.</Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Lukk</Button>
+      </DialogActions>
+    </Dialog>
   );
-} 
+}

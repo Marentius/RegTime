@@ -2,244 +2,337 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '../components/Header';
-import CompanyGrid from '../components/CompanyGrid';
-import AddCompanyModal from '../components/AddCompanyModal';
-import SearchBar from '../components/SearchBar';
-import RegisterTimeModal from '../components/RegisterTimeModal';
-import CompanyTimeModal from '../components/CompanyTimeModal';
-import CalendarModal from '../components/CalendarModal';
-import SummaryModal from '../components/SummaryModal';
-import ConfirmationModal from '../components/ConfirmationModal';
 import * as api from '../lib/api';
+import { Container, Grid, Button, Box, Typography, CircularProgress, useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+
+import Header from '@/components/Header';
+import SearchBar from '@/components/SearchBar';
+import CompanyCard from '@/components/CompanyCard';
+import AddCompanyModal from '@/components/AddCompanyModal';
+import ConfirmationModal from '@/components/ConfirmationModal';
+import RegisterTimeModal from '@/components/RegisterTimeModal';
+import AddCategoryModal from '@/components/AddCategoryModal';
+import CalendarModal from '@/components/CalendarModal';
+import SummaryModal from '@/components/SummaryModal';
+import CompanyTimeModal from '@/components/CompanyTimeModal';
 
 export default function Home() {
+  const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [companies, setCompanies] = useState([]);
-  const [timeEntries, setTimeEntries] = useState([]);
+  const [allTimeEntries, setAllTimeEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const [showModal, setShowModal] = useState(false);
-  const [newCompany, setNewCompany] = useState("");
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [registerValues, setRegisterValues] = useState({
+  // Modals
+  const [isAddCompanyModalOpen, setAddCompanyModalOpen] = useState(false);
+  const [isRegisterTimeModalOpen, setRegisterTimeModalOpen] = useState(false);
+  const [isAddCategoryModalOpen, setAddCategoryModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setConfirmationModalOpen] = useState(false);
+  const [isCalendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [isSummaryModalOpen, setSummaryModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [calendarDate, setCalendarDate] = useState(new Date());
+
+  // Modal state
+  const [newCompanyName, setNewCompanyName] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [companyToDelete, setCompanyToDelete] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [timeEntryValues, setTimeEntryValues] = useState({
     companyId: '',
     description: '',
     hours: '',
     date: new Date().toISOString().split('T')[0],
+    category: '',
   });
-  const [registerLoading, setRegisterLoading] = useState(false);
-  const [registerError, setRegisterError] = useState('');
-
-  const [selectedCompany, setSelectedCompany] = useState(null);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showSummary, setShowSummary] = useState(false);
-
-  // State for kalender-måned og år
-  const [calendarDate, setCalendarDate] = useState(new Date());
-
-  // State for sletting av selskap
-  const [companyToDelete, setCompanyToDelete] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState(false);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [companiesData, timeEntriesData] = await Promise.all([
-        api.getCompanies(),
-        api.getTimeEntries()
-      ]);
-      setCompanies(companiesData);
-      setTimeEntries(timeEntriesData);
-    } catch (e) {
-      console.error("Failed to fetch data", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createCompany = async (e) => {
-    e.preventDefault();
-    if (!newCompany.trim()) return;
-    setLoading(true);
-    try {
-      await api.createCompany({ name: newCompany.trim() });
-      setNewCompany("");
-      setShowModal(false);
-      fetchData();
-    } catch (e) {
-      console.error("Failed to create company", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegisterChange = (field, value) => {
-    setRegisterValues((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    setRegisterLoading(true);
-    setRegisterError('');
-    const company = companies.find((c) => c.id === registerValues.companyId);
-    if (!company) {
-      setRegisterError('Velg et selskap');
-      setRegisterLoading(false);
-      return;
-    }
-    try {
-      await api.createTimeEntry({
-        ...registerValues,
-        companyName: company.name,
-      });
-      setShowRegisterModal(false);
-      setRegisterValues({
-        companyId: '',
-        description: '',
-        hours: '',
-        date: new Date().toISOString().split('T')[0],
-      });
-      fetchData();
-    } catch (error) {
-      setRegisterError(error.message || 'Kunne ikke koble til serveren');
-    } finally {
-      setRegisterLoading(false);
-    }
-  };
-
-  const handleCompanyClick = (company) => {
-    setSelectedCompany(company);
-  };
-
-  const handleTimeEntryDeleted = () => {
-    fetchData();
-    setSelectedCompany(null);
-  };
-
-  // Håndterere for sletting av selskap
-  const handleOpenDeleteModal = (company) => {
-    setCompanyToDelete(company);
-  };
-
-  const handleCloseDeleteModal = () => {
-    setCompanyToDelete(null);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!companyToDelete) return;
-    setDeleteLoading(true);
-    try {
-      await api.deleteCompany(companyToDelete.id);
-      // Omdiriger til forsiden for en fersk start, som løser problemet med å "henge" på bekreftelsessiden.
-      window.location.href = '/';
-    } catch (error) {
-      console.error("Failed to delete company", error);
-      // Vis en feilmelding til brukeren
-      alert('En feil oppstod under sletting av selskapet.'); // Gi tilbakemelding til bruker
-      setDeleteLoading(false); // Stopp lasting ved feil
-      handleCloseDeleteModal(); // Lukk modalen ved feil
-    }
-  };
+  const [timeEntryError, setTimeEntryError] = useState('');
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const isAuthenticated = localStorage.getItem('isAuthenticated');
     if (!isAuthenticated) {
       router.push('/login');
-    } else {
-      setIsAuthorized(true);
-      fetchData();
+      return;
     }
+
+    const fetchData = async () => {
+      try {
+        const [companiesData, entriesData, categoriesData] = await Promise.all([
+          api.getCompanies(),
+          api.getTimeEntries(),
+          api.getCategories(),
+        ]);
+        setCompanies(companiesData);
+        setAllTimeEntries(entriesData);
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('Failed to fetch initial data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [router]);
 
-  const filteredCompanies = companies.filter(c =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCompanies = companies.filter((company) =>
+    company.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!isAuthorized) {
-    // Returner null (eller en lasteindikator) for å unngå at innholdet blinker
-    // for uautoriserte brukere før de blir videresendt.
-    return null;
+  // Handlers
+  const handleAddCompany = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
+    try {
+      const newCompany = await api.createCompany({ name: newCompanyName });
+      setCompanies([...companies, newCompany]);
+      setAddCompanyModalOpen(false);
+      setNewCompanyName('');
+    } catch (error) {
+      console.error('Failed to add company:', error);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleDeleteConfirmation = (company) => {
+    setCompanyToDelete(company);
+    setConfirmationModalOpen(true);
+  };
+
+  const handleDeleteCompany = async () => {
+    if (!companyToDelete) return;
+    setModalLoading(true);
+    try {
+      await api.deleteCompany(companyToDelete.id);
+      setCompanies(companies.filter((c) => c.id !== companyToDelete.id));
+      setConfirmationModalOpen(false);
+      setCompanyToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete company:', error);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleRegisterTime = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
+    setTimeEntryError('');
+    try {
+      const company = companies.find(c => c.id === timeEntryValues.companyId);
+      const entryToSave = {
+        ...timeEntryValues,
+        hours: parseFloat(timeEntryValues.hours),
+        companyName: company ? company.name : '',
+      };
+      await api.createTimeEntry(entryToSave);
+      setRegisterTimeModalOpen(false);
+      const updatedEntries = await api.getTimeEntries();
+      setAllTimeEntries(updatedEntries);
+    } catch (error) {
+      setTimeEntryError(error.message || 'En feil oppstod ved lagring.');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleAddTimeCategory = (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+
+    const trimmedCategory = newCategoryName.trim();
+    if (!categories.includes(trimmedCategory)) {
+      setCategories(prev => [...prev, trimmedCategory].sort());
+    }
+    
+    setTimeEntryValues(prev => ({ ...prev, category: trimmedCategory }));
+    
+    setAddCategoryModalOpen(false);
+    setNewCategoryName('');
+  };
+
+  const handleDeleteTimeEntry = async (entryId) => {
+    const originalEntries = [...allTimeEntries];
+    setAllTimeEntries(prevEntries => prevEntries.filter(entry => entry.id !== entryId));
+    try {
+      await api.deleteTimeEntry(entryId);
+    } catch (error) {
+      console.error('Failed to delete time entry:', error);
+      setAllTimeEntries(originalEntries);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        <Header
-          onOversikt={() => {}}
-          onRegistrere={() => setShowRegisterModal(true)}
-          onKalender={() => setShowCalendar(true)}
-          onSummering={() => setShowSummary(true)}
-          onAddCompany={() => setShowModal(true)}
-        />
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div className="flex-1 min-w-[200px]">
-            <SearchBar onSearch={setSearchTerm} placeholder="Søk nummer eller navn på selskap" />
-          </div>
-        </div>
-        <CompanyGrid 
-          companies={filteredCompanies} 
-          onCompanyClick={handleCompanyClick} 
-          onDeleteCompany={handleOpenDeleteModal}
-          loading={loading} 
-        />
-        <AddCompanyModal
-          open={showModal}
-          onClose={() => setShowModal(false)}
-          onSubmit={createCompany}
-          value={newCompany}
-          onChange={e => setNewCompany(e.target.value)}
-          loading={loading}
-        />
-        <RegisterTimeModal
-          open={showRegisterModal}
-          onClose={() => setShowRegisterModal(false)}
-          onSubmit={handleRegisterSubmit}
-          companies={companies}
-          values={registerValues}
-          onChange={handleRegisterChange}
-          loading={registerLoading}
-          error={registerError}
-        />
-        <CompanyTimeModal
-          open={!!selectedCompany}
-          onClose={() => setSelectedCompany(null)}
-          company={selectedCompany}
-          timeEntries={timeEntries}
-          loading={loading}
-          onTimeEntryDeleted={handleTimeEntryDeleted}
-        />
-        <CalendarModal
-          open={showCalendar}
-          onClose={() => setShowCalendar(false)}
-          timeEntries={timeEntries}
-          loading={loading}
-          currentDate={calendarDate}
-          onDateChange={setCalendarDate}
-        />
-        <SummaryModal
-          open={showSummary}
-          onClose={() => setShowSummary(false)}
-          companies={companies}
-          timeEntries={timeEntries}
-          loading={loading}
-        />
-        <ConfirmationModal
-          open={!!companyToDelete}
-          onClose={handleCloseDeleteModal}
-          onConfirm={handleConfirmDelete}
-          title="Slett selskap"
-          confirmText="Ja, slett"
-          loading={deleteLoading}
+    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, sm: 2, md: 4 } }}>
+      <Header
+        onRegistrere={() => setRegisterTimeModalOpen(true)}
+        onKalender={() => setCalendarModalOpen(true)}
+        onSummering={() => setSummaryModalOpen(true)}
+      />
+
+      <main>
+        <Box sx={{ my: { xs: 3, md: 6 }, textAlign: 'center' }}>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ fontSize: { xs: '1.5rem', md: '2.2rem' } }}>
+                Selskaper
+            </Typography>
+            <Typography color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.2rem' } }}>
+                Velg et selskap for å se detaljer eller opprett et nytt.
+            </Typography>
+        </Box>
+
+        <Box sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          mb: 3,
+          gap: 2,
+          px: { xs: 0, md: 4 }
+        }}>
+          <SearchBar
+            onSearch={setSearchTerm}
+            placeholder="Søk etter selskap..."
+          />
+          {isMobile && (
+            <Button
+              variant="contained"
+              onClick={() => setRegisterTimeModalOpen(true)}
+              sx={{ mt: 1, width: '100%' }}
+            >
+              Registrer ny tid
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            onClick={() => setAddCompanyModalOpen(true)}
+            sx={{
+              ml: { xs: 0, sm: 2 },
+              mt: { xs: 1, sm: 0 },
+              width: { xs: '100%', sm: 'auto' },
+              whiteSpace: 'nowrap',
+              fontSize: { xs: '1rem', md: '1rem' },
+              px: { xs: 2.5, md: 4 },
+              py: { xs: 1.2, md: 1.7 },
+            }}
+          >
+            Legg til selskap
+          </Button>
+        </Box>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+            gap: { xs: 2, md: 4 },
+            mt: 1,
+            px: { xs: 0, md: 2 },
+            width: '100%',
+            justifyItems: 'stretch',
+            alignItems: 'stretch',
+          }}
         >
-          Er du sikker på at du vil slette <strong>{companyToDelete?.name}</strong>?
-          <br />
-          Alle tilknyttede timeregistreringer vil også bli permanent slettet.
-        </ConfirmationModal>
-      </div>
-    </div>
+          {filteredCompanies.map((company) => (
+            <Box key={company.id} sx={{ height: '100%', display: 'flex' }}>
+              <CompanyCard
+                name={company.name}
+                onClick={() => setSelectedCompany(company)}
+                onDelete={() => handleDeleteConfirmation(company)}
+              />
+            </Box>
+          ))}
+        </Box>
+      </main>
+
+      <AddCompanyModal
+        open={isAddCompanyModalOpen}
+        onClose={() => setAddCompanyModalOpen(false)}
+        onSubmit={handleAddCompany}
+        value={newCompanyName}
+        onChange={(e) => setNewCompanyName(e.target.value)}
+        loading={modalLoading}
+      />
+
+      <ConfirmationModal
+        open={isConfirmationModalOpen}
+        onClose={() => setConfirmationModalOpen(false)}
+        onConfirm={handleDeleteCompany}
+        title="Bekreft sletting"
+        message={`Er du sikker på at du vil slette ${companyToDelete?.name}? Denne handlingen kan ikke angres.`}
+        loading={modalLoading}
+      />
+
+      <RegisterTimeModal
+        open={isRegisterTimeModalOpen}
+        onClose={() => setRegisterTimeModalOpen(false)}
+        onSubmit={handleRegisterTime}
+        companies={companies}
+        values={timeEntryValues}
+        onChange={(field, value) => setTimeEntryValues(prev => ({ ...prev, [field]: value }))}
+        loading={modalLoading}
+        error={timeEntryError}
+        categories={categories}
+        onAddCategory={() => setAddCategoryModalOpen(true)}
+        onAddCompany={() => setAddCompanyModalOpen(true)}
+      />
+
+      <AddCategoryModal
+        open={isAddCategoryModalOpen}
+        onClose={() => setAddCategoryModalOpen(false)}
+        onSubmit={handleAddTimeCategory}
+        value={newCategoryName}
+        onChange={(e) => setNewCategoryName(e.target.value)}
+        loading={modalLoading}
+      />
+
+      <CalendarModal
+        open={isCalendarModalOpen}
+        onClose={() => setCalendarModalOpen(false)}
+        entries={allTimeEntries}
+        currentDate={calendarDate}
+        onDateChange={setCalendarDate}
+        categories={categories}
+      />
+
+      <SummaryModal
+        open={isSummaryModalOpen}
+        onClose={() => setSummaryModalOpen(false)}
+        entries={allTimeEntries}
+        companies={companies}
+      />
+
+      <CompanyTimeModal
+        open={!!selectedCompany}
+        onClose={() => setSelectedCompany(null)}
+        company={selectedCompany}
+        entries={allTimeEntries.filter(e => e.companyId === selectedCompany?.id)}
+        onDelete={handleDeleteTimeEntry}
+      />
+      <Box component="footer" sx={{
+      width: '100%',
+      mt: 6,
+      py: 3,
+      textAlign: 'center',
+      color: 'text.secondary',
+      fontSize: { xs: '0.95rem', md: '1rem' },
+      letterSpacing: 0.2,
+      background: 'transparent',
+      position: 'relative',
+    }}>
+      <Typography variant="body2">
+        Laget av Vetle Marentius &copy; {new Date().getFullYear()}
+      </Typography>
+    </Box>
+    </Container>
+    
   );
 }
