@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>no.marentius</groupId>
-    <artifactId>TimeApp</artifactId>
+    <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>TimeApp</name>
-    <description>TimeApp</description>
+    <name>backend</name>
+    <description>Time App backend</description>
 
     <properties>
         <java.version>21</java.version>
@@ -41,6 +41,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-core</artifactId>
+            <version>4.17.0</version>
         </dependency>
     </dependencies>
 

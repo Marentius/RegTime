@@ -10,6 +10,9 @@ public class TimeEntry {
     private String description;
     private double hours;
     private String date;
+    private String rowKey;
+    private String companyId;
+    private String companyName;
 
     public TimeEntry() {}
 
@@ -59,5 +62,29 @@ public class TimeEntry {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getRowKey() {
+        return rowKey;
+    }
+
+    public void setRowKey(String rowKey) {
+        this.rowKey = rowKey;
+    }
+
+    public String getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(String companyId) {
+        this.companyId = companyId;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 }

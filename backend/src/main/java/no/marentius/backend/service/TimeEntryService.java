@@ -1,59 +1,109 @@
 package no.marentius.backend.service;
 
 import no.marentius.backend.model.TimeEntry;
-import java.util.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.*;
+import java.util.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class TimeEntryService {
 
-    @Value("${astradb.base-url}")
-    private String baseUrl;
-
-    @Value("${astradb.token}")
-    private String token;
-
-    private final RestTemplate restTemplate;
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    public TimeEntryService() {
-        this.restTemplate = new RestTemplate();
-    }
+    @Autowired
+    private CqlSession session;
 
     public TimeEntry save(TimeEntry entry) {
-        HttpHeaders headers = createHeaders();
-        entry.setId(UUID.randomUUID().toString());
-        HttpEntity<TimeEntry> request = new HttpEntity<>(entry, headers);
-        restTemplate.postForEntity(baseUrl + "/collections/timer", request, String.class);
+        String id = UUID.randomUUID().toString();
+        entry.setId(id);
+        
+        String insertQuery = "INSERT INTO timeentries (id, customer, description, hours, date, companyId, companyName) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
+        PreparedStatement prepared = session.prepare(insertQuery);
+        BoundStatement bound = prepared.bind(
+            id,
+            entry.getCustomer(),
+            entry.getDescription(),
+            entry.getHours(),
+            entry.getDate(),
+            entry.getCompanyId(),
+            entry.getCompanyName()
+        );
+        
+        session.execute(bound);
         return entry;
     }
 
     public List<TimeEntry> getAll() {
-        return fetch("/collections/timer");
+        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName FROM timeentries";
+        ResultSet rs = session.execute(selectQuery);
+        
+        List<TimeEntry> entries = new ArrayList<>();
+        for (Row row : rs) {
+            TimeEntry entry = new TimeEntry();
+            entry.setId(row.getString("id"));
+            entry.setCustomer(row.getString("customer"));
+            entry.setDescription(row.getString("description"));
+            entry.setHours(row.getDouble("hours"));
+            entry.setDate(row.getString("date"));
+            entry.setCompanyId(row.getString("companyId"));
+            entry.setCompanyName(row.getString("companyName"));
+            entries.add(entry);
+        }
+        return entries;
     }
 
     public List<TimeEntry> getByCustomer(String customer) {
-        String where = String.format("?where={\"customer\":{\"$eq\":\"%s\"}}", customer);
-        return fetch("/collections/timer" + where);
+        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName FROM timeentries WHERE customer LIKE ? ALLOW FILTERING";
+        
+        PreparedStatement prepared = session.prepare(selectQuery);
+        BoundStatement bound = prepared.bind("%" + customer + "%");
+        ResultSet rs = session.execute(bound);
+        
+        List<TimeEntry> entries = new ArrayList<>();
+        for (Row row : rs) {
+            TimeEntry entry = new TimeEntry();
+            entry.setId(row.getString("id"));
+            entry.setCustomer(row.getString("customer"));
+            entry.setDescription(row.getString("description"));
+            entry.setHours(row.getDouble("hours"));
+            entry.setDate(row.getString("date"));
+            entry.setCompanyId(row.getString("companyId"));
+            entry.setCompanyName(row.getString("companyName"));
+            entries.add(entry);
+        }
+        return entries;
     }
 
-    private List<TimeEntry> fetch(String path) {
-        HttpHeaders headers = createHeaders();
-        HttpEntity<Void> request = new HttpEntity<>(headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(baseUrl + path, HttpMethod.GET, request, Map.class);
-        Object data = response.getBody().get("data");
-        return mapper.convertValue(data, mapper.getTypeFactory().constructCollectionType(List.class, TimeEntry.class));
+    public List<TimeEntry> getByCompanyId(String companyId) {
+        String selectQuery = "SELECT id, customer, description, hours, date, companyId, companyName FROM timeentries WHERE companyId = ? ALLOW FILTERING";
+        
+        PreparedStatement prepared = session.prepare(selectQuery);
+        BoundStatement bound = prepared.bind(companyId);
+        ResultSet rs = session.execute(bound);
+        
+        List<TimeEntry> entries = new ArrayList<>();
+        for (Row row : rs) {
+            TimeEntry entry = new TimeEntry();
+            entry.setId(row.getString("id"));
+            entry.setCustomer(row.getString("customer"));
+            entry.setDescription(row.getString("description"));
+            entry.setHours(row.getDouble("hours"));
+            entry.setDate(row.getString("date"));
+            entry.setCompanyId(row.getString("companyId"));
+            entry.setCompanyName(row.getString("companyName"));
+            entries.add(entry);
+        }
+        return entries;
     }
 
-    private HttpHeaders createHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Cassandra-Token", token);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return headers;
+    public void deleteById(String id) {
+        String deleteQuery = "DELETE FROM timeentries WHERE id = ?";
+        
+        PreparedStatement prepared = session.prepare(deleteQuery);
+        BoundStatement bound = prepared.bind(id);
+        session.execute(bound);
     }
 }

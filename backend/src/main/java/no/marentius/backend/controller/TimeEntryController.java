@@ -29,4 +29,14 @@ public class TimeEntryController {
         return service.getByCustomer(name);
     }
 
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) {
+        service.deleteById(id);
+    }
+
+    @GetMapping("/selskap/{companyId}")
+    public List<TimeEntry> getByCompanyId(@PathVariable String companyId) {
+        return service.getByCompanyId(companyId);
+    }
+
 }
