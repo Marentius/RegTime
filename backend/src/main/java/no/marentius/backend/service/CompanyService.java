@@ -1,6 +1,7 @@
 package no.marentius.backend.service;
 
 import no.marentius.backend.model.Company;
+import no.marentius.backend.model.TimeEntry;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,9 @@ import java.util.*;
 public class CompanyService {
     @Autowired
     private CqlSession session;
+
+    @Autowired
+    private TimeEntryService timeEntryService;
 
     public List<Company> getAll() {
         List<Company> companies = new ArrayList<>();
@@ -39,5 +43,22 @@ public class CompanyService {
         );
         company.setId(id.toString());
         return company;
+    }
+
+    public void delete(String id) {
+        // 1. Finn og slett alle tilknyttede timeføringer
+        List<TimeEntry> entriesToDelete = timeEntryService.getByCompanyId(id);
+        for (TimeEntry entry : entriesToDelete) {
+            timeEntryService.deleteById(entry.getId());
+        }
+
+        // 2. Slett selve selskapet
+        UUID companyId = UUID.fromString(id);
+        session.execute(
+            SimpleStatement.newInstance(
+                "DELETE FROM companies WHERE id = ?",
+                companyId
+            )
+        );
     }
 } 

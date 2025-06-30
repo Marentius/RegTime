@@ -37,6 +37,9 @@ export const createCompany = (companyData) => request('/companies', {
   method: 'POST',
   body: JSON.stringify(companyData),
 });
+export const deleteCompany = (id) => request(`/companies/${id}`, {
+  method: 'DELETE',
+});
 
 // Timer
 export const getTimeEntries = () => request('/timer');

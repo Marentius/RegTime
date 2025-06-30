@@ -9,6 +9,7 @@ import RegisterTimeModal from '../components/RegisterTimeModal';
 import CompanyTimeModal from '../components/CompanyTimeModal';
 import CalendarModal from '../components/CalendarModal';
 import SummaryModal from '../components/SummaryModal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import * as api from '../lib/api';
 
 export default function Home() {
@@ -34,6 +35,10 @@ export default function Home() {
 
   // State for kalender-måned og år
   const [calendarDate, setCalendarDate] = useState(new Date());
+
+  // State for sletting av selskap
+  const [companyToDelete, setCompanyToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -112,6 +117,30 @@ export default function Home() {
     setSelectedCompany(null);
   };
 
+  // Håndterere for sletting av selskap
+  const handleOpenDeleteModal = (company) => {
+    setCompanyToDelete(company);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setCompanyToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!companyToDelete) return;
+    setDeleteLoading(true);
+    try {
+      await api.deleteCompany(companyToDelete.id);
+      handleCloseDeleteModal();
+      fetchData(); // Hent data på nytt
+    } catch (error) {
+      console.error("Failed to delete company", error);
+      // Vis en feilmelding til brukeren
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -135,7 +164,12 @@ export default function Home() {
             <SearchBar onSearch={setSearchTerm} placeholder="Søk nummer eller navn på selskap" />
           </div>
         </div>
-        <CompanyGrid companies={filteredCompanies} onCompanyClick={handleCompanyClick} loading={loading} />
+        <CompanyGrid 
+          companies={filteredCompanies} 
+          onCompanyClick={handleCompanyClick} 
+          onDeleteCompany={handleOpenDeleteModal}
+          loading={loading} 
+        />
         <AddCompanyModal
           open={showModal}
           onClose={() => setShowModal(false)}
@@ -177,6 +211,18 @@ export default function Home() {
           timeEntries={timeEntries}
           loading={loading}
         />
+        <ConfirmationModal
+          open={!!companyToDelete}
+          onClose={handleCloseDeleteModal}
+          onConfirm={handleConfirmDelete}
+          title="Slett selskap"
+          confirmText="Ja, slett"
+          loading={deleteLoading}
+        >
+          Er du sikker på at du vil slette <strong>{companyToDelete?.name}</strong>?
+          <br />
+          Alle tilknyttede timeregistreringer vil også bli permanent slettet.
+        </ConfirmationModal>
       </div>
     </div>
   );

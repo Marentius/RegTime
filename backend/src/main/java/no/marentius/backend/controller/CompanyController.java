@@ -21,4 +21,9 @@ public class CompanyController {
     public Company create(@RequestBody Company company) {
         return service.create(company);
     }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) {
+        service.delete(id);
+    }
 } 
