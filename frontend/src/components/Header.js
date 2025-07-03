@@ -4,7 +4,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles';
 
-export default function Header({ onRegistrere, onKalender, onSummering }) {
+export default function Header({ onRegistrere, onKalender, onSummering, onDashboard }) {
   const handleLogout = () => {
     localStorage.removeItem('userId');
     window.location.href = '/login';
@@ -82,6 +82,11 @@ export default function Header({ onRegistrere, onKalender, onSummering }) {
                     <ListItemText primary="Summering" />
                   </ListItemButton>
                 </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={() => { onDashboard(); setDrawerOpen(false); }}>
+                    <ListItemText primary="Dashbord" />
+                  </ListItemButton>
+                </ListItem>
                 {/* Registrer ny tid flyttes ut på mobil */}
                 <ListItem disablePadding sx={{ display: { xs: 'none', sm: 'block' } }}>
                   <ListItemButton onClick={() => { onRegistrere(); setDrawerOpen(false); }}>
@@ -100,6 +105,7 @@ export default function Header({ onRegistrere, onKalender, onSummering }) {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Button color="inherit" onClick={onKalender} sx={{ fontSize: { xs: '0.95rem', md: '0.95rem' }, px: { xs: 2, md: 3 }, py: { xs: 1, md: 1.5 } }}>Kalender</Button>
             <Button color="inherit" onClick={onSummering} sx={{ fontSize: { xs: '0.95rem', md: '0.95rem' }, px: { xs: 2, md: 3 }, py: { xs: 1, md: 1.5 } }}>Summering</Button>
+            <Button color="inherit" onClick={onDashboard} sx={{ fontSize: { xs: '0.95rem', md: '0.95rem' }, px: { xs: 2, md: 3 }, py: { xs: 1, md: 1.5 } }}>Dashbord</Button>
             <Button variant="contained" onClick={onRegistrere} sx={{ ml: 2, fontSize: { xs: '0.95rem', md: '0.95rem' }, px: { xs: 2.5, md: 4 }, py: { xs: 1.2, md:  1} }}>
               Registrer ny tid
             </Button>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import * as api from '../lib/api';
-import { Container, Grid, Button, Box, Typography, CircularProgress, useMediaQuery } from '@mui/material';
+import { Container, Grid, Button, Box, Typography, CircularProgress, useMediaQuery, Dialog } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 import Header from '@/components/Header';
@@ -17,6 +17,7 @@ import CalendarModal from '@/components/CalendarModal';
 import SummaryModal from '@/components/SummaryModal';
 import CompanyTimeModal from '@/components/CompanyTimeModal';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import Dashboard from '@/components/Dashboard';
 
 export default function Home() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function Home() {
   const [isSummaryModalOpen, setSummaryModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [isDashboardOpen, setDashboardOpen] = useState(false);
 
   // Modal state
   const [newCompanyName, setNewCompanyName] = useState('');
@@ -178,6 +180,7 @@ export default function Home() {
           onRegistrere={() => setRegisterTimeModalOpen(true)}
           onKalender={() => setCalendarModalOpen(true)}
           onSummering={() => setSummaryModalOpen(true)}
+          onDashboard={() => setDashboardOpen(true)}
         />
 
         <main>
@@ -316,6 +319,16 @@ export default function Home() {
           entries={allTimeEntries.filter(e => e.companyId === selectedCompany?.id)}
           onDelete={handleDeleteTimeEntry}
         />
+
+        <Dialog open={isDashboardOpen} onClose={() => setDashboardOpen(false)} maxWidth="md" fullWidth>
+          <Box sx={{ p: 2 }}>
+            <Dashboard entries={allTimeEntries} companies={companies} />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button onClick={() => setDashboardOpen(false)} variant="outlined">Lukk</Button>
+            </Box>
+          </Box>
+        </Dialog>
+
         <Box component="footer" sx={{
         width: '100%',
         mt: 6,
