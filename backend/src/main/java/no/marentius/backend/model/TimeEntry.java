@@ -1,19 +1,41 @@
 package no.marentius.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 import java.util.UUID;
 
+@Entity
+@Table(name = "time_entries")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TimeEntry {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+    
+    @Column(nullable = false)
     private String customer;
+    
+    @Column(columnDefinition = "TEXT")
     private String description;
+    
+    @Column(nullable = false)
     private double hours;
+    
+    @Column(nullable = false)
     private String date;
+    
+    @Column(name = "row_key")
     private String rowKey;
+    
+    @Column(name = "company_id")
     private String companyId;
+    
+    @Column(name = "company_name")
     private String companyName;
+    
     private String category;
+    
+    @Column(name = "user_id", nullable = false)
     private String userId;
 
     public TimeEntry() {}

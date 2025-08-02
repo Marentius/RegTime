@@ -1,28 +1,47 @@
 package no.marentius.backend.controller;
 
-import no.marentius.backend.KeepAliveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import javax.sql.DataSource;
+import java.sql.Connection;
 
 @RestController
 @RequestMapping("/api/health")
 public class HealthController {
     
     @Autowired
-    private KeepAliveService keepAliveService;
+    private DataSource dataSource;
     
     /**
-     * Endpoint for eksterne monitoring-tjenester (som UptimeRobot)
-     * Dette holder databasen våken ved å sende en ping
+     * Database health check
      */
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
-        try {
-            keepAliveService.manualKeepAlive();
-            return ResponseEntity.ok("Database er våken og responsiv");
+        try (Connection connection = dataSource.getConnection()) {
+            if (connection.isValid(5)) {
+                return ResponseEntity.ok("Supabase database er tilgjengelig");
+            } else {
+                return ResponseEntity.status(500).body("Database-tilkobling er ugyldig");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Database-feil: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Database health check
+     */
+    @GetMapping("/database")
+    public ResponseEntity<String> databaseHealth() {
+        try (Connection connection = dataSource.getConnection()) {
+            if (connection.isValid(5)) {
+                return ResponseEntity.ok("PostgreSQL database er tilgjengelig");
+            } else {
+                return ResponseEntity.status(500).body("Database-tilkobling er ugyldig");
+            }
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Database-feil: " + e.getMessage());
         }

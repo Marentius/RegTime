@@ -119,13 +119,15 @@ export default function Home() {
     setModalLoading(true);
     setTimeEntryError('');
     try {
-      // Legg til companyName på hver registrering
+      // Legg til companyName og customer på hver registrering
       const entriesToSave = registreringer.map(entry => {
         const company = companies.find(c => c.id === entry.companyId);
         return {
           ...entry,
           hours: parseFloat(entry.hours),
           companyName: company ? company.name : '',
+          customer: company ? company.name : '', // Legg til customer feltet
+          category: entry.category || null, // Konverter tomme strenger til null
         };
       });
       await api.massRegisterTime(entriesToSave);
