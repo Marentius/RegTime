@@ -1,23 +1,28 @@
 package no.marentius.backend.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
 public class User {
-    private String userId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    @SequenceGenerator(name = "user_seq", sequenceName = "user_seq", allocationSize = 1)
+    private Long userId;
+    
+    @Column(unique = true, nullable = false)
     private String username;
+    
+    @Column(nullable = false)
     private String passwordHash;
 
     public User() {}
 
-    public User(String userId, String username, String passwordHash) {
-        this.userId = userId;
-        this.username = username;
-        this.passwordHash = passwordHash;
-    }
-
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

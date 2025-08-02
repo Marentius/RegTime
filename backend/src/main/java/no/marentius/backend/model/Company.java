@@ -1,8 +1,18 @@
 package no.marentius.backend.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "companies")
 public class Company {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+    
+    @Column(nullable = false)
     private String name;
+    
+    @Column(name = "user_id", nullable = false)
     private String userId;
 
     public Company() {}

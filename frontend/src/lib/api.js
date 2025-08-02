@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
 // Generell funksjon for å håndtere fetch-kall
 async function request(endpoint, options = {}) {
