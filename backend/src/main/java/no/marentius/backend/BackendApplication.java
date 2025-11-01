@@ -18,8 +18,13 @@ public class BackendApplication {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
+                String allowedOrigins = System.getenv("CORS_ALLOWED_ORIGINS");
+                String[] origins = allowedOrigins != null && !allowedOrigins.isEmpty()
+                    ? allowedOrigins.split(",")
+                    : new String[]{"http://localhost:3000", "https://regtime.marentius.com"};
+                
                 registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:3000", "https://regtime.marentius.no")
+                        .allowedOrigins(origins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

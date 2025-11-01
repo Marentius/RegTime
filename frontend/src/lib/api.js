@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://regtimeapp.ashysmoke-badd1035.northeurope.azurecontainerapps.io/api';
+// API base URL - settes via miljøvariabel NEXT_PUBLIC_API_URL i Vercel
+// For lokal utvikling: http://localhost:8080/api
+// For produksjon via Cloudflare tunnel: https://RTapi.marentius.com/api
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
 // Generell funksjon for å håndtere fetch-kall
 async function request(endpoint, options = {}) {

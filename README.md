@@ -1,60 +1,110 @@
 # RegTime
 
-**RegTime** er et komplett, skybasert system for enkel og sikker timeregistrering, utviklet med moderne teknologier:
-- **Backend:** Spring Boot (Java) med Cassandra (AstraDB)
-- **Frontend:** Next.js (React) med Material UI
+**RegTime** is a complete, cloud-based system for easy and secure time tracking, built with modern technologies:
+- **Backend:** Spring Boot (Java 21) with PostgreSQL (Supabase)
+- **Frontend:** Next.js (React) with Material UI
+- **Deployment:** Backend on Raspberry Pi via Cloudflare Zero Trust Tunnel, Frontend on Vercel
 
-## Hovedfunksjoner
+## Features
 
-- **Brukerautentisering:** Registrer og logg inn med brukernavn og passord.
-- **Kunde- og kategorihåndtering:** Opprett, søk og administrer kunder og kategorier.
-- **Timeregistrering:**  
-  - Registrer timer med kunde, beskrivelse, kategori, dato og antall timer.
-  - **Masseregistrering:** Legg til flere timeføringer samtidig i ett skjema.
-- **Kalender:** Vis alle registreringer i en moderne, fargekodet kalender (månedvisning).
-- **Summering og rapport:** Få oversikt over timer per kunde og kategori, filtrer på år/måned, og last ned rapport som Excel.
-- **Responsivt og brukervennlig grensesnitt:** Moderne design med Material UI, tilpasset både desktop og mobil.
+- **User Authentication:** Register and log in with username and password.
+- **Customer and Category Management:** Create, search and manage customers and categories.
+- **Time Tracking:**  
+  - Track time with customer, description, category, date and number of hours.
+  - **Bulk Registration:** Add multiple time entries simultaneously in one form.
+- **Calendar:** View all entries in a modern, color-coded calendar (monthly view).
+- **Summary and Reports:** Get overview of hours per customer and category, filter by year/month, and download reports as Excel.
+- **Responsive and User-Friendly Interface:** Modern design with Material UI, optimized for both desktop and mobile.
 
 ---
 
-## Teknisk oversikt
+## Technical Overview
 
 ### Backend (Spring Boot)
-- **API:** REST-endepunkter for autentisering, kunder, timer og kategorier.
-- **Database:** AstraDB (Cassandra) – skalerbar, skybasert NoSQL.
-- **Sikkerhet:** Spring Security med CORS-oppsett for frontend-integrasjon.
-- **Struktur:**
-  - `controller/` – REST API for auth, kunder, timer
-  - `service/` – Forretningslogikk og databaseaksess
-  - `model/` – Java-modeller for bruker, kunde, timeføring
+- **API:** REST endpoints for authentication, customers, time entries and categories
+- **Database:** PostgreSQL (Supabase) – scalable, cloud-based SQL database
+- **Security:** Spring Security with CORS setup for frontend integration
+- **Containerization:** Docker container for easy deployment
+- **Structure:**
+  - `controller/` – REST API for auth, customers, time entries
+  - `service/` – Business logic and database access
+  - `model/` – Java models for user, customer, time entry
+  - `repository/` – JPA repositories for database access
 
 ### Frontend (Next.js)
-- **UI:** Material UI (MUI) for moderne, tilgjengelig design.
+- **UI:** Material UI (MUI) for modern, accessible design.
 - **State management:** React hooks.
-- **Funksjonelle komponenter:**
-  - **RegisterTimeModal:** Dynamisk skjema for én eller flere timeføringer.
-  - **CompanyGrid/CompanyCard:** Oversikt og administrasjon av kunder.
-  - **CalendarModal:** Kalender med fargekoder og detaljer for hver registrering.
-  - **SummaryModal:** Summering, filtrering og eksport til Excel.
-  - **Autentisering:** Egen side for innlogging og registrering.
-- **API-håndtering:** Egen `api.js` for all kommunikasjon med backend.
+- **Functional Components:**
+  - **RegisterTimeModal:** Dynamic form for one or multiple time entries.
+  - **CompanyGrid/CompanyCard:** Overview and administration of customers.
+  - **CalendarModal:** Calendar with color codes and details for each entry.
+  - **SummaryModal:** Summary, filtering and export to Excel.
+  - **Authentication:** Dedicated page for login and registration.
+- **API Handling:** Dedicated `api.js` for all backend communication.
  
- ---
+---
 
-## Eksempel på bruk
+## Usage Examples
 
-- **Registrer timer:**  
-  Fyll ut én eller flere rader i skjemaet, velg kunde, kategori, dato og timer. Trykk "Registrer" for å lagre alt på én gang.
-- **Kalender:**  
-  Se alle registreringer i en oversiktlig kalender. Klikk på en registrering for detaljer.
-- **Summering:**  
-  Få oversikt over timer per kunde/kategori, filtrer på år/måned, og last ned rapport som Excel.
+- **Track Time:**  
+  Fill out one or more rows in the form, select customer, category, date and hours. Click "Register" to save everything at once.
+- **Calendar:**  
+  View all entries in an overview calendar. Click on an entry for details.
+- **Summary:**  
+  Get overview of hours per customer/category, filter by year/month, and download report as Excel.
 
 ---
 
-## Teknologier
+## Deployment
 
-- **Backend:** Spring Boot 3, Java 21, AstraDB (Cassandra), Maven
-- **Frontend:** Next.js 15, React 19, Material UI, ExcelJS (for eksport), JavaScript (ES6+)
+RegTime is set up with the following architecture:
+
+- **Backend:** Runs as Docker container on Raspberry Pi, exposed via Cloudflare Zero Trust Tunnel at `RTapi.marentius.com`
+- **Frontend:** Deployed on Vercel and available at `regtime.marentius.com`
+- **Database:** PostgreSQL on Supabase (cloud-based)
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+
+### Quick Start (Development)
+
+**Backend:**
+```bash
+cd backend
+mvn clean package
+java -jar target/backend-0.0.1-SNAPSHOT.jar
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Backend runs on `http://localhost:8080/api` and frontend on `http://localhost:3000` for local development.
+
+---
+
+## Technologies
+
+- **Backend:** 
+  - Spring Boot 3.5.3
+  - Java 21
+  - PostgreSQL (Supabase)
+  - Spring Data JPA
+  - Spring Security
+  - Maven
+  - Docker (Alpine Linux)
+- **Frontend:** 
+  - Next.js 15.3.4
+  - React 19
+  - Material UI 7
+  - ExcelJS (for export)
+  - JavaScript (ES6+)
+- **Deployment:**
+  - Docker & Docker Compose
+  - GitHub Container Registry (GHCR)
+  - Cloudflare Zero Trust Tunnel
+  - Vercel (Frontend hosting)
 
 ---
